@@ -1,43 +1,51 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
-import { graphqlClient } from "@/lib/graphql";
+import { Eye, EyeOff, CheckCircle, Lock } from "lucide-react";
+import { resetPassword, validatePassword, formatAuthError } from "@/lib/auth-utils";
 
-interface SignupResponse {
-  signup: {
-    user: { id: string; username: string; email: string };
-    token: string;
-    refreshToken: string;
-  };
-}
-
-export default function SignupPage() {
+export default function ResetPasswordPage() {
   const router = useRouter();
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [bio, setBio] = useState("");
+  const searchParams = useSearchParams();
+  const [token, setToken] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    const tokenParam = searchParams.get("token");
+    if (!tokenParam) {
+      setError("Invalid or missing reset token.");
+    } else {
+      setToken(tokenParam);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
-    // Validation
-    if (!username || !email || !password) {
-      setError("Please fill in all required fields.");
+    if (!token) {
+      setError("Invalid reset token.");
       return;
     }
 
-    if (password.length < 8) {
-      setError("Password must contain at least 8 characters.");
+    // Validation
+    if (!password || !confirmPassword) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      setError(passwordValidation.errors[0]);
       return;
     }
 
@@ -49,27 +57,21 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const mutation = `
-        mutation Signup($username: String!, $email: String!, $password: String!, $bio: String) {
-          signup(username: $username, email: $email, password: $password, bio: $bio) {
-            user { id username email }
-            token
-            refreshToken
-          }
-        }
-      `;
+      const response = await resetPassword(token, password);
 
-      const variables = { username, email, password, bio };
-      const data: SignupResponse = await graphqlClient.request(mutation, variables);
-
-      localStorage.setItem("accessToken", data.signup.token);
-      localStorage.setItem("refreshToken", data.signup.refreshToken);
-
-      router.push("/feed");
+      if (response.success) {
+        setSuccess(true);
+        // Redirect to login after 3 seconds
+        setTimeout(() => {
+          router.push("/login");
+        }, 3000);
+      } else {
+        setError(response.message || "Failed to reset password.");
+      }
     } catch (err) {
       if (err instanceof Error) {
-        console.error("❌ Signup error:", err);
-        setError(err.message || "Failed to create account. Please try again.");
+        console.error("❌ Reset password error:", err);
+        setError(formatAuthError(err));
       } else {
         setError("An unexpected error occurred.");
       }
@@ -78,75 +80,147 @@ export default function SignupPage() {
     }
   };
 
+  if (success) {
+    return (
+      <div className="auth-container">
+        <div className="auth-card">
+          <div className="success-icon-wrapper">
+            <CheckCircle size={64} strokeWidth={2} className="success-icon" />
+          </div>
+
+          <h1 className="auth-title">Password Reset!</h1>
+
+          <p className="success-message">
+            Your password has been successfully reset. You can now log in with
+            your new password.
+          </p>
+
+          <p className="redirect-message">
+            Redirecting to login page in 3 seconds...
+          </p>
+
+          <Link href="/login" className="back-to-login-btn">
+            Go to Login Now
+          </Link>
+
+          <style jsx>{`
+            .success-icon-wrapper {
+              display: flex;
+              justify-content: center;
+              margin-bottom: 24px;
+            }
+
+            .success-icon {
+              color: #2b8761;
+            }
+
+            .success-message {
+              font-family: "Inter", sans-serif;
+              font-size: 15px;
+              color: #1f2937;
+              text-align: center;
+              margin: 0 0 16px 0;
+              line-height: 1.6;
+            }
+
+            .redirect-message {
+              font-family: "Inter", sans-serif;
+              font-size: 13px;
+              color: #6b7280;
+              text-align: center;
+              margin: 0 0 24px 0;
+            }
+
+            .back-to-login-btn {
+              width: 100%;
+              padding: 14px 24px;
+              background: #2b8761;
+              color: white;
+              border: none;
+              border-radius: 12px;
+              font-family: "Poppins", sans-serif;
+              font-size: 16px;
+              font-weight: 600;
+              cursor: pointer;
+              transition: all 0.3s ease;
+              text-align: center;
+              text-decoration: none;
+              display: block;
+            }
+
+            .back-to-login-btn:hover {
+              background: #1f6949;
+              transform: translateY(-2px);
+              box-shadow: 0 6px 20px rgba(43, 135, 97, 0.3);
+            }
+          `}</style>
+        </div>
+
+        <style jsx>{`
+          .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #808080;
+            padding: 20px;
+          }
+
+          .auth-card {
+            width: 100%;
+            max-width: 420px;
+            background: #b1f5bf;
+            border-radius: 16px;
+            padding: 48px 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+          }
+
+          .auth-title {
+            font-family: "Poppins", sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: #1f2937;
+            text-align: center;
+            margin: 0 0 24px 0;
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">Signup</h1>
+        {/* Icon */}
+        <div className="icon-wrapper">
+          <Lock size={48} strokeWidth={2} className="lock-icon" />
+        </div>
+
+        <h1 className="auth-title">Reset Password</h1>
+
+        <p className="subtitle">
+          Please enter your new password below. Make sure it's at least 8
+          characters long.
+        </p>
 
         <form onSubmit={handleSubmit} className="auth-form">
           {error && <div className="error-message">{error}</div>}
 
-          {/* Username */}
-          <div className="form-group">
-            <label htmlFor="username" className="form-label">
-              Username
-            </label>
-            <input
-              id="username"
-              type="text"
-              className="form-input"
-              placeholder="John"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
-
-          {/* Email */}
-          <div className="form-group">
-            <label htmlFor="email" className="form-label">
-              E-mail
-            </label>
-            <input
-              id="email"
-              type="email"
-              className="form-input"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          {/* Bio (optional) */}
-          <div className="form-group">
-            <label htmlFor="bio" className="form-label">
-              bio(optional)
-            </label>
-            <input
-              id="bio"
-              type="text"
-              className="form-input"
-              placeholder=""
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-            />
-          </div>
-
-          {/* Password */}
+          {/* New Password */}
           <div className="form-group">
             <label htmlFor="password" className="form-label">
-              Password
+              New Password
             </label>
             <div className="password-input-wrapper">
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 className="form-input"
-                placeholder="••••••••"
+                placeholder="Enter new password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoFocus
               />
               <button
                 type="button"
@@ -167,14 +241,14 @@ export default function SignupPage() {
           {/* Confirm Password */}
           <div className="form-group">
             <label htmlFor="confirmPassword" className="form-label">
-              Confirm Password
+              Confirm New Password
             </label>
             <div className="password-input-wrapper">
               <input
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 className="form-input"
-                placeholder="••••••••"
+                placeholder="Confirm new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -195,26 +269,17 @@ export default function SignupPage() {
           </div>
 
           {/* Submit Button */}
-          <button type="submit" className="submit-btn" disabled={loading}>
-            {loading ? "Creating Account..." : "Create Account"}
+          <button 
+            type="submit" 
+            className="submit-btn" 
+            disabled={loading || !token}
+          >
+            {loading ? "Resetting..." : "Reset Password"}
           </button>
-
-          {/* Terms & Privacy */}
-          <p className="terms-text">
-            By continuing, you agree to our{" "}
-            <Link href="/terms" className="terms-link">
-              Terms of Service
-            </Link>{" "}
-            and{" "}
-            <Link href="/privacy" className="terms-link">
-              Privacy Policy
-            </Link>
-            .
-          </p>
 
           {/* Login Link */}
           <p className="switch-auth">
-            Already have an account?{" "}
+            Remember your password?{" "}
             <Link href="/login" className="switch-link">
               Login
             </Link>
@@ -225,11 +290,10 @@ export default function SignupPage() {
       <style jsx>{`
         .auth-container {
           min-height: 100vh;
-          width: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
-          background:  #b1f5bf;
+          background: #808080;
           padding: 20px;
         }
 
@@ -242,13 +306,32 @@ export default function SignupPage() {
           box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
         }
 
+        .icon-wrapper {
+          display: flex;
+          justify-content: center;
+          margin-bottom: 20px;
+        }
+
+        .lock-icon {
+          color: #2b8761;
+        }
+
         .auth-title {
           font-family: "Poppins", sans-serif;
-          font-size: 36px;
+          font-size: 32px;
           font-weight: 700;
           color: #1f2937;
           text-align: center;
+          margin: 0 0 16px 0;
+        }
+
+        .subtitle {
+          font-family: "Inter", sans-serif;
+          font-size: 15px;
+          color: #6b7280;
+          text-align: center;
           margin: 0 0 32px 0;
+          line-height: 1.6;
         }
 
         .auth-form {
@@ -366,25 +449,6 @@ export default function SignupPage() {
         .submit-btn:disabled {
           opacity: 0.6;
           cursor: not-allowed;
-        }
-
-        .terms-text {
-          font-family: "Inter", sans-serif;
-          font-size: 12px;
-          color: #1f2937;
-          text-align: center;
-          margin: 4px 0 0 0;
-          line-height: 1.5;
-        }
-
-        .terms-link {
-          color: #2b8761;
-          text-decoration: none;
-          font-weight: 500;
-        }
-
-        .terms-link:hover {
-          text-decoration: underline;
         }
 
         .switch-auth {
