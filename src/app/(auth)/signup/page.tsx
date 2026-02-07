@@ -1,21 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
-import { graphqlClient } from "@/lib/graphql";
-
-interface SignupResponse {
-  signup: {
-    user: { id: string; username: string; email: string };
-    token: string;
-    refreshToken: string;
-  };
-}
+import { useAuth } from "@/context/AuthContext";
 
 export default function SignupPage() {
-  const router = useRouter();
+  const { signup, loading, error, clearError } = useAuth();
+  
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [bio, setBio] = useState("");
@@ -23,60 +15,38 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [localError, setLocalError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
+    setLocalError("");
+    clearError();
 
     // Validation
     if (!username || !email || !password) {
-      setError("Please fill in all required fields.");
+      setLocalError("Please fill in all required fields.");
       return;
     }
 
     if (password.length < 8) {
-      setError("Password must contain at least 8 characters.");
+      setLocalError("Password must contain at least 8 characters.");
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setLocalError("Passwords do not match.");
       return;
     }
 
-    setLoading(true);
-
     try {
-      const mutation = `
-        mutation Signup($username: String!, $email: String!, $password: String!, $bio: String) {
-          signup(username: $username, email: $email, password: $password, bio: $bio) {
-            user { id username email }
-            token
-            refreshToken
-          }
-        }
-      `;
-
-      const variables = { username, email, password, bio };
-      const data: SignupResponse = await graphqlClient.request(mutation, variables);
-
-      localStorage.setItem("accessToken", data.signup.token);
-      localStorage.setItem("refreshToken", data.signup.refreshToken);
-
-      router.push("/feed");
+      await signup({ username, email, password, bio: bio || undefined });
     } catch (err) {
-      if (err instanceof Error) {
-        console.error("❌ Signup error:", err);
-        setError(err.message || "Failed to create account. Please try again.");
-      } else {
-        setError("An unexpected error occurred.");
-      }
-    } finally {
-      setLoading(false);
+      // Error is handled by AuthContext
+      console.error("Signup failed:", err);
     }
   };
+
+  const displayError = localError || error;
 
   return (
     <div className="auth-container">
@@ -84,7 +54,7 @@ export default function SignupPage() {
         <h1 className="auth-title">Signup</h1>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          {error && <div className="error-message">{error}</div>}
+          {displayError && <div className="error-message">{displayError}</div>}
 
           {/* Username */}
           <div className="form-group">
@@ -99,6 +69,7 @@ export default function SignupPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
 
@@ -115,6 +86,7 @@ export default function SignupPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
 
@@ -130,6 +102,7 @@ export default function SignupPage() {
               placeholder=""
               value={bio}
               onChange={(e) => setBio(e.target.value)}
+              disabled={loading}
             />
           </div>
 
@@ -147,12 +120,14 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={loading}
               />
               <button
                 type="button"
                 className="password-toggle"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label="Toggle password visibility"
+                disabled={loading}
               >
                 {showPassword ? (
                   <EyeOff size={20} strokeWidth={2} />
@@ -178,12 +153,14 @@ export default function SignupPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+                disabled={loading}
               />
               <button
                 type="button"
                 className="password-toggle"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 aria-label="Toggle password visibility"
+                disabled={loading}
               >
                 {showConfirmPassword ? (
                   <EyeOff size={20} strokeWidth={2} />
@@ -225,11 +202,10 @@ export default function SignupPage() {
       <style jsx>{`
         .auth-container {
           min-height: 100vh;
-          width: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
-          background:  #b1f5bf;
+          background: #808080;
           padding: 20px;
         }
 
@@ -303,6 +279,11 @@ export default function SignupPage() {
           box-shadow: 0 0 0 3px rgba(43, 135, 97, 0.1);
         }
 
+        .form-input:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
         .password-input-wrapper {
           position: relative;
         }
@@ -323,8 +304,13 @@ export default function SignupPage() {
           transition: color 0.2s ease;
         }
 
-        .password-toggle:hover {
+        .password-toggle:hover:not(:disabled) {
           color: #1f2937;
+        }
+
+        .password-toggle:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
 
         .password-toggle :global(svg) {

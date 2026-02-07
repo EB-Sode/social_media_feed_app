@@ -1,15 +1,23 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import React from "react";
 import Link from "next/link";
-import { Home, Plus, Calendar, Search, Menu, User, Bell } from "lucide-react";
+import { Home, Plus, Calendar, Search, Menu, Bell } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const notificationCount = 3; // This would come from your state management
+  const { user, isAuthenticated } = useAuth();
+  const notificationCount = 3; // This would come from your notification hook
 
   const isActive = (path: string) => pathname === path;
+
+  // Profile link - use user ID if authenticated, otherwise go to login
+  const profileLink = user?.id ? `/profile/${user.id}` : "/login";
+  const postlink = isAuthenticated ? `/post/${user?.id}` : "/login";
+  const profileAvatar = user?.profileImage || "/api/placeholder/40/40";
 
   return (
     <nav className="sidebar">
@@ -19,8 +27,8 @@ export default function Sidebar() {
 
       <div className="nav-items">
         <Link 
-          href="/" 
-          className={`nav-item ${isActive("/") ? "active" : ""}`}
+          href="/feed" 
+          className={`nav-item ${isActive("/feed") ? "active" : ""}`}
           aria-label="Home"
         >
           <Home size={24} strokeWidth={2} />
@@ -40,8 +48,8 @@ export default function Sidebar() {
         </Link>
 
         <Link 
-          href="/upload" 
-          className={`nav-item ${isActive("/upload") ? "active" : ""}`}
+          href={postlink} 
+          className={`nav-item ${isActive("/post") ? "active" : ""}`}
           aria-label="Upload"
         >
           <Plus size={24} strokeWidth={2} />
@@ -74,13 +82,13 @@ export default function Sidebar() {
 
       <div className="nav-footer">
         <Link 
-          href="/profile" 
+          href={profileLink}
           className="nav-item" 
           aria-label="Profile"
         >
           <div className="profile-avatar">
             <img 
-              src="/api/placeholder/40/40" 
+              src={profileAvatar} 
               alt="Profile"
               className="avatar-img"
             />
@@ -183,6 +191,7 @@ export default function Sidebar() {
 
         .nav-footer {
           margin-top: auto;
+          padding-bottom: 40px;
         }
 
         .profile-avatar {

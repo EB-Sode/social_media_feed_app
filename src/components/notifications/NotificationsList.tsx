@@ -12,7 +12,7 @@ export interface Notification {
   type: NotificationType;
   user: {
     name: string;
-    avatar: string;
+    profileImage?: string;
   };
   content?: string;
   postImage?: string;
@@ -26,7 +26,7 @@ const NOTIFICATIONS: Notification[] = [
     type: "like",
     user: {
       name: "Sarah Johnson",
-      avatar: "SJ",
+      profileImage: "/api/placeholder/60/60",
     },
     timestamp: "2m ago",
     isRead: false,
@@ -37,7 +37,7 @@ const NOTIFICATIONS: Notification[] = [
     type: "comment",
     user: {
       name: "Michael Chen",
-      avatar: "MC",
+      profileImage: "MO",
     },
     content: "Amazing shot! Where was this taken?",
     timestamp: "15m ago",
@@ -49,7 +49,7 @@ const NOTIFICATIONS: Notification[] = [
     type: "follow",
     user: {
       name: "Emma Williams",
-      avatar: "EW",
+      profileImage: "EW",
     },
     timestamp: "1h ago",
     isRead: false,
@@ -59,7 +59,7 @@ const NOTIFICATIONS: Notification[] = [
     type: "mention",
     user: {
       name: "David Park",
-      avatar: "DP",
+      profileImage: "DP",
     },
     content: "mentioned you in a comment",
     timestamp: "2h ago",
@@ -71,7 +71,7 @@ const NOTIFICATIONS: Notification[] = [
     type: "like",
     user: {
       name: "Olivia Martinez",
-      avatar: "OM",
+      profileImage: "OM",
     },
     timestamp: "3h ago",
     isRead: true,
@@ -82,7 +82,7 @@ const NOTIFICATIONS: Notification[] = [
     type: "follow",
     user: {
       name: "James Wilson",
-      avatar: "JW",
+      profileImage: "JW",
     },
     timestamp: "5h ago",
     isRead: true,
@@ -92,7 +92,7 @@ const NOTIFICATIONS: Notification[] = [
     type: "comment",
     user: {
       name: "Sophia Anderson",
-      avatar: "SA",
+      profileImage: "SA",
     },
     content: "Love your content! Keep it up! 🔥",
     timestamp: "6h ago",
@@ -104,7 +104,7 @@ const NOTIFICATIONS: Notification[] = [
     type: "share",
     user: {
       name: "Liam Thompson",
-      avatar: "LT",
+      profileImage: "LT",
     },
     timestamp: "1d ago",
     isRead: true,

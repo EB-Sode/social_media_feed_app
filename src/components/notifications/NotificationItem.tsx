@@ -63,7 +63,7 @@ export default function NotificationItem({
 
       {/* Avatar with Icon Badge */}
       <div className="avatar-container">
-        <div className="avatar">{notification.user.avatar}</div>
+        <div className="avatar">{notification.user.profileImage ? <img src={notification.user.profileImage} alt={notification.user.name} className="avatar-image" /> : notification.user.name.charAt(0).toUpperCase()}</div>
         <div className="icon-badge">{getNotificationIcon(notification.type)}</div>
       </div>
 

@@ -1,62 +1,33 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
-import { graphqlClient } from "@/lib/graphql";
-
-interface LoginResponse {
-  login: {
-    user: { id: string; username: string; email: string };
-    token: string;
-  };
-}
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
-  const router = useRouter();
+  const { login, loading, error, clearError } = useAuth();
+  
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [localError, setLocalError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
+    setLocalError("");
+    clearError();
 
     if (!username || !password) {
-      setError("Please fill in all fields.");
+      setLocalError("Please fill in all fields.");
       return;
     }
 
-    setLoading(true);
-
     try {
-      const mutation = `
-        mutation Login($username: String!, $password: String!) {
-          login(username: $username, password: $password) {
-            user { id username email }
-            token
-          }
-        }
-      `;
-
-      const variables = { username, password };
-      const data: LoginResponse = await graphqlClient.request(mutation, variables);
-
-      localStorage.setItem("accessToken", data.login.token);
-
-      router.push("/feed");
+      await login(username, password);
     } catch (err) {
-      if (err instanceof Error) {
-        console.error("❌ Login error:", err);
-        setError(err.message || "Invalid username or password.");
-      } else {
-        setError("An unexpected error occurred.");
-      }
-    } finally {
-      setLoading(false);
+      // Error is handled by AuthContext
+      console.error("Login failed:", err);
     }
   };
 
@@ -66,13 +37,15 @@ export default function LoginPage() {
     // You would integrate with Google OAuth here
   };
 
+  const displayError = localError || error;
+
   return (
     <div className="auth-container">
       <div className="auth-card">
         <h1 className="auth-title">Login</h1>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          {error && <div className="error-message">{error}</div>}
+          {displayError && <div className="error-message">{displayError}</div>}
 
           {/* Username/Email */}
           <div className="form-group">
@@ -87,6 +60,7 @@ export default function LoginPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
 
@@ -104,12 +78,14 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={loading}
               />
               <button
                 type="button"
                 className="password-toggle"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label="Toggle password visibility"
+                disabled={loading}
               >
                 {showPassword ? (
                   <EyeOff size={20} strokeWidth={2} />
@@ -138,6 +114,7 @@ export default function LoginPage() {
             type="button"
             className="google-btn"
             onClick={handleGoogleLogin}
+            disabled={loading}
           >
             <svg
               width="20"
@@ -257,6 +234,11 @@ export default function LoginPage() {
           box-shadow: 0 0 0 3px rgba(43, 135, 97, 0.1);
         }
 
+        .form-input:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
         .password-input-wrapper {
           position: relative;
         }
@@ -277,8 +259,13 @@ export default function LoginPage() {
           transition: color 0.2s ease;
         }
 
-        .password-toggle:hover {
+        .password-toggle:hover:not(:disabled) {
           color: #1f2937;
+        }
+
+        .password-toggle:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
 
         .password-toggle :global(svg) {
@@ -378,15 +365,20 @@ export default function LoginPage() {
           gap: 12px;
         }
 
-        .google-btn:hover {
+        .google-btn:hover:not(:disabled) {
           background: #f9fafb;
           border-color: rgba(0, 0, 0, 0.25);
           transform: translateY(-1px);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
-        .google-btn:active {
+        .google-btn:active:not(:disabled) {
           transform: translateY(0);
+        }
+
+        .google-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
         }
 
         .switch-auth {

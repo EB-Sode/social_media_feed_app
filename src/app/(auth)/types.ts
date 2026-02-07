@@ -1,14 +1,8 @@
 // src/app/(auth)/types.ts
 
-/** User info returned from API */
-export interface User {
-  id: string;
-  username: string;
-  email: string;
-  bio?: string;
-}
+import { User } from "@/lib/queries";
 
-/** Response from Signup mutation */
+/** Signup response */
 export interface SignupResponse {
   signup: {
     user: User;
@@ -17,21 +11,20 @@ export interface SignupResponse {
   };
 }
 
-/** Response from Login mutation */
+/** Login response */
 export interface LoginResponse {
   login: {
     user: User;
     token: string;
+    refreshToken: string;
   };
 }
 
-/** Props for AuthForm component */
 export interface AuthFormProps {
-  mode: "signup" | "login"; // determines whether form is signup or login
-  redirectTo?: string;       // optional redirect URL after success
+  mode: "signup" | "login";
+  redirectTo?: string;
 }
 
-/** Form input fields for signup */
 export interface SignupFormFields {
   username: string;
   email: string;
@@ -39,7 +32,6 @@ export interface SignupFormFields {
   bio?: string;
 }
 
-/** Form input fields for login */
 export interface LoginFormFields {
   username: string;
   password: string;
