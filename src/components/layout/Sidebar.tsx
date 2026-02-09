@@ -3,7 +3,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Home, Plus, Calendar, Search, Menu, Bell } from "lucide-react";
+import { Home, Plus, Search, Menu, Bell } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
@@ -17,7 +17,7 @@ export default function Sidebar() {
   // Profile link - use user ID if authenticated, otherwise go to login
   const profileLink = user?.id ? `/profile/${user.id}` : "/login";
   const postlink = isAuthenticated ? `/post/${user?.id}` : "/login";
-  const profileAvatar = user?.profileImage || "/api/placeholder/40/40";
+  const profileAvatar = user?.profileImage || "https://via.placeholder.com/40";
 
   return (
     <nav className="sidebar">
@@ -26,6 +26,19 @@ export default function Sidebar() {
       </div>
 
       <div className="nav-items">
+        <Link 
+          href={profileLink}
+          className="nav-item" 
+          aria-label="Profile"
+        >
+          <div className="profile-avatar">
+            <img 
+              src={profileAvatar} 
+              alt="Profile"
+              className="avatar-img"
+            />
+          </div>
+        </Link>
         <Link 
           href="/feed" 
           className={`nav-item ${isActive("/feed") ? "active" : ""}`}
@@ -54,14 +67,14 @@ export default function Sidebar() {
         >
           <Plus size={24} strokeWidth={2} />
         </Link>
-
+{/* 
         <Link 
           href="/calendar" 
           className={`nav-item ${isActive("/calendar") ? "active" : ""}`}
           aria-label="Calendar"
         >
           <Calendar size={24} strokeWidth={2} />
-        </Link>
+        </Link> */}
 
         <Link 
           href="/search" 
@@ -70,29 +83,15 @@ export default function Sidebar() {
         >
           <Search size={24} strokeWidth={2} />
         </Link>
+      </div>
 
+      <div className="nav-footer">
         <Link 
           href="/menu" 
           className={`nav-item ${isActive("/menu") ? "active" : ""}`}
           aria-label="Menu"
         >
           <Menu size={24} strokeWidth={2} />
-        </Link>
-      </div>
-
-      <div className="nav-footer">
-        <Link 
-          href={profileLink}
-          className="nav-item" 
-          aria-label="Profile"
-        >
-          <div className="profile-avatar">
-            <img 
-              src={profileAvatar} 
-              alt="Profile"
-              className="avatar-img"
-            />
-          </div>
         </Link>
       </div>
 

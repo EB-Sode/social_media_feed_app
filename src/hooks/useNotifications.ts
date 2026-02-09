@@ -1,95 +1,110 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getAuthenticatedClient } from "@/lib/graphql";
 import {
   GET_NOTIFICATIONS,
-  MARK_NOTIFICATION_READ_MUTATION,
   MARK_ALL_NOTIFICATIONS_READ_MUTATION,
+  MARK_NOTIFICATION_READ_MUTATION,
   type Notification,
 } from "@/lib/queries";
 
-export function useNotifications() {
+type Filter = "all" | "unread";
+
+export function useNotificationsLive() {
+  const [filter, setFilter] = useState<Filter>("all");
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  /**
-   * Load notifications from API
-   * UPDATED: Memoized with useCallback for consistency
-   */
-  const loadNotifications = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const client = useMemo(() => getAuthenticatedClient(), []);
+  const mountedRef = useRef(true);
 
+  const unreadCount = useMemo(
+    () => notifications.filter((n) => !n.isRead).length,
+    [notifications]
+  );
+
+  const fetchNotifications = useCallback(async () => {
     try {
-      const client = getAuthenticatedClient();
-      const { notifications } = await client.request<{ 
-        notifications: Notification[] 
-      }>(GET_NOTIFICATIONS);
+      const res = await client.request<{ notifications: Notification[] }>(
+        GET_NOTIFICATIONS,
+        { limit: 50, unreadOnly: filter === "unread" }
+      );
 
-      setNotifications(notifications);
-    } catch (err) {
-      console.error("Failed to load notifications:", err);
-      setError("Failed to load notifications");
+      if (!mountedRef.current) return;
+
+      setNotifications(res.notifications ?? []);
+      setError(null);
+    } catch (e: any) {
+      if (!mountedRef.current) return;
+      setError(e?.message ?? "Failed to load notifications");
     } finally {
+      if (!mountedRef.current) return;
       setLoading(false);
     }
+  }, [client, filter]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
-  // UPDATED: Simplified effect using the memoized function
   useEffect(() => {
-    loadNotifications();
-  }, [loadNotifications]);
+    setLoading(true);
+    fetchNotifications();
+  }, [fetchNotifications]);
 
-  /**
-   * Mark a single notification as read
-   * @param notificationId - ID of the notification to mark as read
-   */
-  const markAsRead = async (notificationId: string) => {
-    try {
-      const client = getAuthenticatedClient();
-      await client.request(MARK_NOTIFICATION_READ_MUTATION, { notificationId });
+  // Polling = live (pause when tab is hidden)
+  useEffect(() => {
+    const tick = () => {
+      if (document.visibilityState === "visible") fetchNotifications();
+    };
 
-      // Update local state optimistically
+    const id = window.setInterval(tick, 10000);
+    return () => window.clearInterval(id);
+  }, [fetchNotifications]);
+
+  const markAsRead = useCallback(
+    async (notificationId: string) => {
+      // optimistic
       setNotifications((prev) =>
         prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n))
       );
-    } catch (err) {
-      console.error("Failed to mark notification as read:", err);
-      throw err;
-    }
-  };
 
-  /**
-   * Mark all notifications as read
-   * UPDATED: Added this function for bulk operations
-   */
-  const markAllAsRead = async () => {
+      try {
+        await client.request(MARK_NOTIFICATION_READ_MUTATION, {
+          notificationId: Number(notificationId), // backend expects Int
+        });
+      } catch {
+        fetchNotifications(); // rollback by refetch
+      }
+    },
+    [client, fetchNotifications]
+  );
+
+  const markAllAsRead = useCallback(async () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+
     try {
-      const client = getAuthenticatedClient();
       await client.request(MARK_ALL_NOTIFICATIONS_READ_MUTATION);
-
-      // Update all notifications to read
-      setNotifications((prev) =>
-        prev.map((n) => ({ ...n, isRead: true }))
-      );
-    } catch (err) {
-      console.error("Failed to mark all notifications as read:", err);
-      throw err;
+    } catch {
+      fetchNotifications();
     }
-  };
-
-  // UPDATED: Memoized computed value
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  }, [client, fetchNotifications]);
 
   return {
+    filter,
+    setFilter,
     notifications,
     unreadCount,
     loading,
     error,
-    refetch: loadNotifications,
     markAsRead,
-    markAllAsRead, // UPDATED: Added bulk mark as read
+    markAllAsRead,
+    refetch: fetchNotifications,
   };
 }

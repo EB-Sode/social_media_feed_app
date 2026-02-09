@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -12,7 +13,8 @@ import {
 import type { Post } from "@/lib/queries";
 import { useToast } from "@/components/providers/ToastProvider";
 
-export function useFeed() {
+export function useFeed(options?: { autoFetch?: boolean }) {
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,65 +39,196 @@ export function useFeed() {
   }, [showToast]);
 
   useEffect(() => {
-    fetchFeed();
-  }, [fetchFeed]);
+    if (options?.autoFetch !== false) fetchFeed();
+  }, [fetchFeed, options?.autoFetch]);
+
 
   /** Create a new post */
-const createPost = async (content?: string, imageBase64?: string) => {
-  if (!content && !imageBase64) {
-    showToast("Post must have content or image", "error");
-    throw new Error("Post must have content or image");
-  }
+  const createPost = async (content?: string, imageFile?: File) => {
+    if (!content && !imageFile) {
+      showToast("Post must have content or image", "error");
+      throw new Error("Post must have content or image");
+    }
 
-  try {
-    const client = getAuthenticatedClient();
+    if (content && content.length > 100) {
+      showToast("Post content too long (max 100 chars)", "error");
+      throw new Error("Content exceeds 100 characters");
+    }
 
-    const { createPost } = await client.request<{
-      createPost: { post: Post };
-    }>(CREATE_POST_MUTATION, {
-      content: content || "",
-      image: imageBase64 || null,
-    });
+    try {
+      const graphqlUrl = process.env.NEXT_PUBLIC_API_URL || '';
+      const token = localStorage.getItem("accessToken") || "";
 
-    setPosts((prev) => [createPost.post, ...prev]);
-    showToast("Post created successfully!", "success");
-    return createPost.post;
-  } catch (err: any) {
-    console.error("Failed to create post:", err);
-    showToast("Failed to create post", "error");
-    throw err;
-  }
-};
+      // If image exists, use FormData for file upload
+      if (imageFile) {
+        const formData = new FormData();
+        const query = `
+          mutation CreatePost($content: String!, $image: Upload) {
+            createPost(content: $content, image: $image) {
+              post {
+                id
+                content
+                image
+                createdAt
+                updatedAt
+                likesCount
+                commentsCount
+                isLikedByUser
+                author {
+                  id
+                  username
+                  profileImage
+                }
+              }
+            }
+          }
+        `;
 
+        formData.append(
+          "operations",
+          JSON.stringify({
+            query,
+            variables: { content: content || "", image: null },
+          })
+        );
+
+        formData.append("map", JSON.stringify({ "0": ["variables.image"] }));
+        formData.append("0", imageFile);
+
+        const res = await fetch(graphqlUrl, {
+          method: "POST",
+          body: formData,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (err) {
+          console.error("Non-JSON response:", text);
+          throw new Error("Server returned invalid response");
+        }
+
+        if (data.errors) throw new Error(data.errors[0].message);
+
+        const post = data.data.createPost.post;
+        setPosts((prev) => [post, ...prev]);
+        showToast("Post created successfully!", "success");
+        return post;
+      }
+
+      // For text-only posts, use a mutation WITHOUT the image parameter
+      const textOnlyMutation = `
+        mutation CreatePost($content: String!) {
+          createPost(content: $content) {
+            post {
+              id
+              content
+              image
+              createdAt
+              updatedAt
+              likesCount
+              commentsCount
+              isLikedByUser
+              author {
+                id
+                username
+                profileImage
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await fetch(graphqlUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          query: textOnlyMutation,
+          variables: { 
+            content: content || ""
+          },
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.errors) {
+        throw new Error(data.errors[0].message);
+      }
+
+      const post = data.data.createPost.post;
+      setPosts((prev) => [post, ...prev]);
+      showToast("Post created successfully!", "success");
+      return post;
+    } catch (err: any) {
+      console.error("Failed to create post:", err);
+      showToast(err.message || "Failed to create post", "error");
+      throw err;
+    }
+  };
 
   /** Like/unlike a post */
   const likePost = async (postId: string) => {
-    try {
-      const client = getAuthenticatedClient();
-      const { likePost } = await client.request<{
-        likePost: {
-          liked: boolean;
-          post: { id: string; likesCount: number; commentsCount: number };
-        };
-      }>(LIKE_POST_MUTATION, { postId });
+    // optimistic update (optional but nice)
+    const prevPosts = posts;
 
+    try {
       setPosts((prev) =>
         prev.map((p) =>
           p.id === postId
             ? {
                 ...p,
-                likesCount: likePost.post.likesCount,
-                isLikedByUser: likePost.liked,
+                // toggle UI immediately
+                isLikedByUser: !p.isLikedByUser,
+                likesCount: p.likesCount + (p.isLikedByUser ? -1 : 1),
+              }
+            : p
+        )
+      );
+
+      const client = getAuthenticatedClient();
+
+      const res = await client.request<{
+        likePost: {
+          success: boolean;
+          message: string;
+          post: { id: string; likesCount: number; commentsCount: number };
+        };
+      }>(LIKE_POST_MUTATION, { postId });
+
+      const { post, message } = res.likePost;
+
+      // infer liked from message (since backend doesn't return liked boolean)
+      const likedNow = message === "Post liked";
+
+      // sync UI with server truth
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId
+            ? {
+                ...p,
+                likesCount: post.likesCount,
+                commentsCount: post.commentsCount,
+                isLikedByUser: likedNow,
               }
             : p
         )
       );
     } catch (err) {
       console.error("Failed to like post:", err);
+      setPosts(prevPosts); // rollback
       showToast("Failed to like post", "error");
       throw err;
     }
   };
+
 
   /** Delete a post */
   const deletePost = async (postId: string) => {

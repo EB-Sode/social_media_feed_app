@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useMemo,
+} from "react";
 import { useRouter } from "next/navigation";
 import {
   getUnauthenticatedClient,
@@ -17,7 +24,7 @@ import {
   REFRESH_TOKEN_MUTATION,
 } from "@/lib/queries";
 import type { User, AuthResponse } from "@/lib/queries";
-import { ME_QUERY } from "@/lib/graphql"; // Make sure to define this query to fetch current user data
+import { ME_QUERY } from "@/lib/graphql";
 
 interface SignupVariables {
   username: string;
@@ -40,6 +47,17 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// ---- helpers ----
+function getTokenExpMs(token: string): number | null {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    if (!payload?.exp) return null;
+    return payload.exp * 1000;
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -48,27 +66,108 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAuthenticated = !!user;
 
-  // Initialize auth state safely
+  const clearError = () => setError(null);
+
+  const hardLogout = () => {
+    clearTokens();
+    setUser(null);
+    router.push("/login");
+  };
+
+  // ✅ Refresh access token (unchanged logic, just cleaner + no silent setUser null unless needed)
+  const refreshAccessToken = async () => {
+    const refreshToken = getRefreshToken();
+
+    if (!refreshToken) {
+      hardLogout();
+      throw new Error("No refresh token available");
+    }
+
+    try {
+      const client = getUnauthenticatedClient();
+      const data = await client.request<{
+        refreshToken: { token: string; refreshToken: string };
+      }>(REFRESH_TOKEN_MUTATION, { refreshToken });
+
+      const { token, refreshToken: newRefreshToken } = data.refreshToken;
+      if (!token || !newRefreshToken) throw new Error("Invalid refresh response");
+
+      saveTokens(token, newRefreshToken);
+    } catch (err) {
+      console.error("Token refresh error:", err);
+      hardLogout();
+      throw err;
+    }
+  };
+
+  // ✅ Single initAuth effect (REMOVED the duplicate)
   useEffect(() => {
-    let isMounted = true;
+    let alive = true;
 
     const initAuth = async () => {
       const token = getAccessToken();
 
-      if (token && isMounted) {
-        // Optionally, fetch current user here
-        setUser((prev) => prev ?? null);
+      // No token → done
+      if (!token) {
+        if (alive) setLoading(false);
+        return;
       }
 
-      if (isMounted) setLoading(false);
+      try {
+        // If token is expired (or about to), refresh first
+        const expMs = getTokenExpMs(token);
+        if (expMs && Date.now() > expMs - 60_000) {
+          await refreshAccessToken();
+        }
+
+        // Fetch current user
+        const client = getAuthenticatedClient();
+        const data = await client.request<{ me: User }>(ME_QUERY);
+        if (alive) setUser(data.me);
+      } catch (err) {
+        console.error("Init auth failed:", err);
+        if (alive) {
+          clearTokens();
+          setUser(null);
+        }
+      } finally {
+        if (alive) setLoading(false);
+      }
     };
 
     initAuth();
 
     return () => {
-      isMounted = false;
+      alive = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ✅ Auto-refresh loop (keeps you logged in while idle)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const interval = setInterval(async () => {
+      const token = getAccessToken();
+      if (!token) return;
+
+      const expMs = getTokenExpMs(token);
+      if (!expMs) return;
+
+      // refresh 1 minute before expiry
+      const shouldRefresh = Date.now() > expMs - 60_000;
+
+      if (shouldRefresh) {
+        try {
+          await refreshAccessToken();
+        } catch {
+          // refreshAccessToken already hard-logs out
+        }
+      }
+    }, 15_000);
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Signup
   const signup = async (variables: SignupVariables) => {
@@ -83,6 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
 
       const { user, token, refreshToken } = data.signup;
+      if (!token || !refreshToken || !user) throw new Error("Invalid signup response");
 
       saveTokens(token, refreshToken);
       setUser(user);
@@ -109,6 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       const { user, token, refreshToken } = data.login;
+      if (!token || !refreshToken || !user) throw new Error("Invalid login response");
 
       saveTokens(token, refreshToken);
       setUser(user);
@@ -139,82 +240,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Refresh access token
-  const refreshAccessToken = async () => {
-    const refreshToken = getRefreshToken();
-
-    if (!refreshToken) {
-      clearTokens();
-      setUser(null);
-      router.push("/login");
-      throw new Error("No refresh token available");
-    }
-
-    try {
-      const client = getUnauthenticatedClient();
-      const data = await client.request<{
-        refreshToken: { token: string; refreshToken: string };
-      }>(REFRESH_TOKEN_MUTATION, { refreshToken });
-
-      const { token, refreshToken: newRefreshToken } = data.refreshToken;
-      saveTokens(token, newRefreshToken);
-    } catch (err) {
-      console.error("Token refresh error:", err);
-      clearTokens();
-      setUser(null);
-      router.push("/login");
-      throw err;
-    }
-  };
-
-  const clearError = () => setError(null);
-
-  useEffect(() => {
-  let isMounted = true;
-
-  const initAuth = async () => {
-    const token = getAccessToken();
-
-    if (token && isMounted) {
-      try {
-        const client = getAuthenticatedClient();
-        const data = await client.request<{ me: User }>(ME_QUERY); // Make sure you have ME_QUERY defined
-        if (isMounted) setUser(data.me);
-      } catch (err) {
-        console.error("Fetching current user failed:", err);
-        clearTokens();
-        if (isMounted) setUser(null);
-      }
-    }
-
-    if (isMounted) setLoading(false);
-  };
-
-  initAuth();
-
-  return () => {
-    isMounted = false;
-  };
-}, []);
-
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        error,
-        isAuthenticated,
-        signup,
-        login,
-        logout,
-        refreshAccessToken,
-        clearError,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const value: AuthContextType = useMemo(() => ({
+    user,
+    loading,
+    error,
+    isAuthenticated,
+      signup,
+      login,
+      logout,
+      refreshAccessToken,
+      clearError,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user, loading, error, isAuthenticated]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

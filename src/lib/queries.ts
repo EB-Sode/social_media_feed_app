@@ -13,9 +13,22 @@ export interface User {
   username: string;
   email?: string;
   bio?: string | null;
-  profileImage?: string | null;
+  profileImage?: string | null;   // ✅ Was "avatar"
+  location?: string | null;        // ✅ Added
+  birthDate?: string | null;       // ✅ Added
+  coverImage?: string | null;      // ✅ Added
   createdAt?: string;
+  followersCount?: number;
+  followingCount?: number;
+  postsCount?: number;
 }
+
+// export type UserProfileUI = User & {
+//   role: string;
+//   coverImage: string;
+//   likes: string;
+//   location: string;
+// };
 
 export interface AuthResponse {
   user: User;
@@ -39,7 +52,7 @@ export interface Post {
   updatedAt: string;
   likesCount: number;
   commentsCount: number;
-  isLikedByUser?: boolean;
+  isLikedByUser: boolean;
   comments?: Comment[];
 };
 
@@ -68,6 +81,50 @@ export interface Notification {
 // QUERIES
 // ============================================================================
 
+export const GET_USERS = `
+  query GetUsers {
+    users {
+      id
+      username
+      email
+      bio
+      followersCount
+      followingCount
+      postsCount
+    }
+  }
+`;
+
+export const GET_USER_BY_USERNAME = `
+  query GetUserByUsername($username: String!) {
+    userByUsername(username: $username) {
+      id
+      username
+      email
+      bio
+      createdAt
+      followersCount
+      followingCount
+      postsCount
+    }
+  }
+`;
+
+export const GET_USER_BY_ID = `
+  query GetUser($userId: ID!) {
+    user(userId: $userId) {
+      id
+      username
+      email
+      bio
+      profileImage
+      createdAt
+      location
+      coverImage
+    }
+  }
+`;
+
 export const GET_FEED = `
   query GetFeed {
     feed {
@@ -94,20 +151,47 @@ export const GET_POST_BY_ID = `
       id
       content
       image
+      author {
+        id
+        username
+        email
+      }
       createdAt
       updatedAt
       likesCount
       commentsCount
-      isLikedByUser
-      author {
+      isLiked
+      comments {
         id
-        username
-        profileImage
+        content
+        author {
+          id
+          username
+        }
+        createdAt
       }
     }
   }
 `;
 
+export const GET_USER_POSTS = `
+  query GetUserPosts($userId: ID!) {
+    userPosts(userId: $userId) {
+      id
+      content
+      image
+      author {
+        id
+        username
+      }
+      createdAt
+      updatedAt
+      likesCount
+      commentsCount
+      isLikedByUser
+    }
+  }
+`;
 export const GET_FOLLOW_STATS = `
   query GetFollowStats($userId: ID!) {
     followStats(userId: $userId) {
@@ -120,10 +204,9 @@ export const GET_FOLLOW_STATS = `
 `;
 
 export const GET_NOTIFICATIONS = `
-  query GetNotifications {
-    notifications {
+  query GetNotifications($limit: Int, $unreadOnly: Boolean) {
+    notifications(limit: $limit, unreadOnly: $unreadOnly) {
       id
-      notificationType
       message
       isRead
       createdAt
@@ -135,7 +218,16 @@ export const GET_NOTIFICATIONS = `
       post {
         id
         content
+        image
       }
+    }
+  }
+`;
+
+export const GET_UNREAD_NOTIFICATIONS = `
+  query GetUnreadNotifications {
+    unreadNotifications {
+      id
     }
   }
 `;
@@ -200,7 +292,7 @@ export const REFRESH_TOKEN_MUTATION = `
 // ============================================================================
 
 export const CREATE_POST_MUTATION = `
-  mutation CreatePost($content: String!, $image: Upload) {
+  mutation CreatePost($content: String!, $image: String) {
     createPost(content: $content, image: $image) {
       post {
         id
@@ -210,6 +302,12 @@ export const CREATE_POST_MUTATION = `
         updatedAt
         likesCount
         commentsCount
+        isLikedByUser
+        author {
+          id
+          username
+          profileImage
+        }
       }
     }
   }
@@ -218,7 +316,8 @@ export const CREATE_POST_MUTATION = `
 export const LIKE_POST_MUTATION = `
   mutation LikePost($postId: ID!) {
     likePost(postId: $postId) {
-      liked
+      success
+      message
       post {
         id
         likesCount
@@ -226,6 +325,7 @@ export const LIKE_POST_MUTATION = `
       }
     }
   }
+
 `;
 
 export const CREATE_COMMENT_MUTATION = `
@@ -292,6 +392,15 @@ export const UNFOLLOW_USER_MUTATION = `
 // NOTIFICATION MUTATIONS
 // ============================================================================
 
+export const MARK_NOTIFICATION_READ_MUTATION = `
+  mutation MarkNotificationRead($notificationId: Int!) {
+    markAsRead(notificationId: $notificationId) {
+      success
+    }
+  }
+`;
+
+
 export const MARK_ALL_NOTIFICATIONS_READ_MUTATION = `
   mutation MarkAllNotificationsAsRead {
     markAllAsRead {
@@ -303,62 +412,20 @@ export const MARK_ALL_NOTIFICATIONS_READ_MUTATION = `
 // PROFILE QUERIES
 // =====================
 
-export const GET_USER_POSTS = `
-  query GetUserPosts($userId: ID!) {
-    userPosts(userId: $userId) {
-      id
-      content
-      image
-      createdAt
-      updatedAt
-      likesCount
-      commentsCount
-      isLikedByUser
-      author {
-        id
-        username
-        profileImage
-      }
-    }
-  }
-`;
 
-// =====================
-// NOTIFICATION QUERIES
-// =====================
 
-export const GET_UNREAD_NOTIFICATIONS = `
-  query GetUnreadNotifications {
-    unreadNotifications {
-      id
-    }
-  }
-`;
-
-export const MARK_NOTIFICATION_READ_MUTATION = `
-  mutation MarkNotificationRead($notificationId: ID!) {
-    markAsRead(notificationId: $notificationId) {
-      success
-    }
-  }
-`;
-
-// =====================
-// PROFILE MUTATION
-// =====================
+// Replace in lib/queries.ts
 
 export const UPDATE_PROFILE_MUTATION = `
   mutation UpdateProfile(
-    $username: String
-    $email: String
     $bio: String
-    $avatar: String
+    $email: String
+    $profileImage: String
   ) {
     updateProfile(
-      username: $username
-      email: $email
       bio: $bio
-      avatar: $avatar
+      email: $email
+      profileImage: $profileImage
     ) {
       user {
         id
@@ -366,6 +433,13 @@ export const UPDATE_PROFILE_MUTATION = `
         email
         bio
         profileImage
+        createdAt
+        location
+        birthDate
+        coverImage
+        followersCount
+        followingCount
+        postsCount
       }
     }
   }

@@ -97,6 +97,7 @@ export default function PostPage() {
   return (
     <div className="post-container">
       {/* Header */}
+      
       <div className="post-header">
         <button className="back-btn" onClick={() => router.back()}>
           <ArrowLeft size={24} />

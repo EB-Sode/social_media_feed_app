@@ -1,7 +1,13 @@
 import { GraphQLClient } from 'graphql-request';
 import { gql } from "graphql-request";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+if (!API_URL) {
+  throw new Error("NEXT_PUBLIC_API_URL is missing. Set it to https://.../graphql/");
+}
+
+const ENDPOINT = API_URL.endsWith("/") ? API_URL : `${API_URL}/`;
 
 /**
  * Create a GraphQL client instance with authentication
@@ -16,7 +22,7 @@ export function createGraphQLClient(token?: string | null): GraphQLClient {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  return new GraphQLClient(API_URL, {
+  return new GraphQLClient(ENDPOINT, {
     headers,
   });
 }
@@ -73,7 +79,7 @@ export function getUnauthenticatedClient(): GraphQLClient {
 }
 
 // Export the default client for backward compatibility
-export const graphqlClient = getAuthenticatedClient();
+export const graphqlClient = () => getAuthenticatedClient();
 
 
 export const ME_QUERY = gql`

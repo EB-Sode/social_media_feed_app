@@ -2,72 +2,172 @@
 
 import React from "react";
 import Link from "next/link";
-import { Home, Compass, PlusSquare, User } from "lucide-react";
+import { Home, Compass, User, Plus, Heart, Send } from "lucide-react";
+import { usePathname } from "next/navigation";
 
-export default function Header() {
+type HeaderProps = {
+  onCreatePost?: () => void; // ✅ makes Plus clickable when provided (Feed page)
+  onOpenLikes?: () => void;  // optional
+  onOpenMessages?: () => void; // optional
+  profileHref?: string; // optional, default "/profile"
+};
+
+export default function Header({
+  onCreatePost,
+  onOpenLikes,
+  onOpenMessages,
+  profileHref = "/profile",
+}: HeaderProps) {
+  const pathname = usePathname();
+
+  // simple active state
+  const isActive = (href: string) =>
+    pathname === href || (href !== "/" && pathname?.startsWith(href));
+
   return (
     <header className="header">
       <div className="header-content">
-        <h1 className="logo">SocialApp</h1>
-        
-        <nav className="nav" aria-label="Main navigation">
-          <Link href="/" className="nav-link active" aria-label="Home">
-            <Home size={22} strokeWidth={2} />
-          </Link>
-          <Link href="/explore" className="nav-link" aria-label="Explore">
-            <Compass size={22} strokeWidth={2} />
-          </Link>
-          <Link href="/add" className="nav-link" aria-label="Add post">
-            <PlusSquare size={22} strokeWidth={2} />
-          </Link>
-          <Link href="/profile" className="nav-link" aria-label="Profile">
-            <User size={22} strokeWidth={2} />
-          </Link>
-        </nav>
+        <div className="header-left">
+          <h1 className="app-name">Social</h1>
+        </div>
+
+        <div className="header-actions">
+          {/* Likes */}
+          <button
+            className="header-btn"
+            aria-label="Liked posts"
+            onClick={onOpenLikes}
+            type="button"
+            disabled={!onOpenLikes}
+            title={!onOpenLikes ? "Coming soon" : "Liked posts"}
+          >
+            <Heart size={24} />
+          </button>
+
+          {/* Messages */}
+          <button
+            className="header-btn"
+            aria-label="Messages"
+            onClick={onOpenMessages}
+            type="button"
+            disabled={!onOpenMessages}
+            title={!onOpenMessages ? "Coming soon" : "Messages"}
+          >
+            <Send size={24} />
+          </button>
+
+          {/* Create Post (Plus) */}
+          <button
+            className="header-btn"
+            aria-label="Create post"
+            onClick={onCreatePost}
+            type="button"
+            disabled={!onCreatePost}
+            title={!onCreatePost ? "Only available on Feed" : "Create post"}
+          >
+            <Plus size={24} />
+          </button>
+
+          {/* Nav icons (optional) */}
+          <nav className="nav" aria-label="Main navigation">
+            <Link
+              href="/feed"
+              className={`nav-link ${isActive("/feed") ? "active" : ""}`}
+              aria-label="Home"
+            >
+              <Home size={22} strokeWidth={2} />
+            </Link>
+
+            {/* <Link
+              href={profileHref}
+              className={`nav-link ${isActive(profileHref) ? "active" : ""}`}
+              aria-label="Profile"
+            >
+              <User size={22} strokeWidth={2} />
+            </Link> */}
+          </nav>
+        </div>
       </div>
 
       <style jsx>{`
         .header {
           width: 100%;
-          max-width: 390px;
           background: white;
-          border-bottom: 1px solid rgba(43, 135, 97, 0.1);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
           position: sticky;
           top: 0;
           z-index: 100;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
 
         .header-content {
-          padding: 16px 20px;
+          padding: 16px 24px;
           display: flex;
           align-items: center;
           justify-content: space-between;
         }
 
-        .logo {
+        .header-left {
+          display: flex;
+          align-items: center;
+        }
+
+        .app-name {
           font-family: "Poppins", sans-serif;
-          font-size: 24px;
+          font-size: 20px;
           font-weight: 700;
-          color: #2b8761;
+          color: #1f2937;
           margin: 0;
-          letter-spacing: -0.5px;
+        }
+
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .header-btn {
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: transparent;
+          border: none;
+          color: #1f2937;
+          cursor: pointer;
+          border-radius: 8px;
+          transition: background 0.2s ease;
+        }
+
+        .header-btn:hover:not(:disabled) {
+          background: rgba(31, 41, 55, 0.1);
+        }
+
+        .header-btn:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+
+        .header-btn :global(svg) {
+          color: currentColor;
         }
 
         .nav {
           display: flex;
           align-items: center;
-          gap: 4px;
+          gap: 6px;
+          margin-left: 6px;
         }
 
         .nav-link {
-          padding: 8px 10px;
-          color: #6b7280;
-          border-radius: 10px;
-          transition: all 0.2s ease;
+          width: 40px;
+          height: 40px;
           display: flex;
           align-items: center;
           justify-content: center;
+          color: #6b7280;
+          border-radius: 10px;
+          transition: all 0.2s ease;
         }
 
         .nav-link:hover {

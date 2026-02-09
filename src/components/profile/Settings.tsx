@@ -22,9 +22,10 @@ import { clearTokens } from "@/lib/auth-utils";
 
 interface SettingsProps {
   onClose: () => void;
+  onEditProfile: () => void; // ✅ NEW
 }
 
-export default function Settings({ onClose }: SettingsProps) {
+export default function Settings({ onClose, onEditProfile }: SettingsProps) {
   const router = useRouter();
 
   const handleLogout = () => {
@@ -36,8 +37,15 @@ export default function Settings({ onClose }: SettingsProps) {
     {
       title: "Account",
       items: [
-        { icon: User, label: "Edit profile", onClick: onClose },
-        { icon: Shield, label: "security", onClick: () => {} },
+        {
+          icon: User,
+          label: "Edit profile",
+          onClick: () => {
+            onClose();        // close settings
+            onEditProfile(); // open edit profile
+          },
+        },
+        { icon: Shield, label: "Security", onClick: () => {} },
         { icon: Bell, label: "Notifications", onClick: () => {} },
         { icon: Lock, label: "Privacy", onClick: () => {} },
       ],
@@ -72,37 +80,35 @@ export default function Settings({ onClose }: SettingsProps) {
       <div className="settings-container">
         {/* Header */}
         <header className="settings-header">
-          <button className="back-button" onClick={onClose} aria-label="Back">
-            <ArrowLeft size={24} strokeWidth={2} />
+          <button className="back-button" onClick={onClose}>
+            <ArrowLeft size={24} />
           </button>
           <h1 className="settings-title">Settings</h1>
         </header>
 
-        {/* Settings List */}
+        {/* Content */}
         <div className="settings-content">
-          {settingsSections.map((section, index) => (
-            <div key={index} className="settings-section">
+          {settingsSections.map((section, i) => (
+            <div key={i} className="settings-section">
               <h2 className="section-title">{section.title}</h2>
-              <div className="settings-items">
-                {section.items.map((item, itemIndex) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={itemIndex}
-                      className="settings-item"
-                      onClick={item.onClick}
-                    >
-                      <div className="item-left">
-                        <div className="item-icon">
-                          <Icon size={20} strokeWidth={2} />
-                        </div>
-                        <span className="item-label">{item.label}</span>
+              {section.items.map((item, j) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={j}
+                    className="settings-item"
+                    onClick={item.onClick}
+                  >
+                    <div className="item-left">
+                      <div className="item-icon">
+                        <Icon size={20} />
                       </div>
-                      <ChevronRight size={20} strokeWidth={2} className="chevron" />
-                    </button>
-                  );
-                })}
-              </div>
+                      <span>{item.label}</span>
+                    </div>
+                    <ChevronRight size={20} />
+                  </button>
+                );
+              })}
             </div>
           ))}
         </div>

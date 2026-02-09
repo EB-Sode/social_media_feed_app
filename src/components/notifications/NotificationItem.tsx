@@ -1,15 +1,36 @@
 "use client";
 
 import React from "react";
-import { Heart, MessageCircle, UserPlus, AtSign, Share2, MoreHorizontal } from "lucide-react";
-import type { Notification, NotificationType } from "./NotificationsList";
+import {
+  Heart,
+  MessageCircle,
+  UserPlus,
+  AtSign,
+  Share2,
+  MoreHorizontal,
+} from "lucide-react";
+
+export type UINotificationType = "like" | "comment" | "follow" | "mention" | "share";
+
+export interface UINotification {
+  id: string;
+  type: UINotificationType;
+  user: {
+    name: string;
+    profileImage?: string | null;
+  };
+  content?: string;
+  postImage?: string | null;
+  timestamp: string;
+  isRead: boolean;
+}
 
 interface NotificationItemProps {
-  notification: Notification;
+  notification: UINotification;
   onMarkAsRead: (id: string) => void;
 }
 
-const getNotificationIcon = (type: NotificationType) => {
+const getNotificationIcon = (type: UINotificationType) => {
   switch (type) {
     case "like":
       return <Heart size={20} fill="#ef4444" strokeWidth={0} />;
@@ -26,7 +47,7 @@ const getNotificationIcon = (type: NotificationType) => {
   }
 };
 
-const getNotificationText = (notification: Notification) => {
+const getNotificationText = (notification: UINotification) => {
   switch (notification.type) {
     case "like":
       return "liked your post";
@@ -43,60 +64,72 @@ const getNotificationText = (notification: Notification) => {
   }
 };
 
-export default function NotificationItem({
-  notification,
-  onMarkAsRead,
-}: NotificationItemProps) {
-  const handleClick = () => {
-    if (!notification.isRead) {
-      onMarkAsRead(notification.id);
-    }
+export default function NotificationItem({ notification, onMarkAsRead }: NotificationItemProps) {
+  const markReadIfNeeded = () => {
+    if (!notification.isRead) onMarkAsRead(notification.id);
   };
 
   return (
-    <div
-      className={`notification-item ${!notification.isRead ? "unread" : ""}`}
-      onClick={handleClick}
-    >
-      {/* Unread Indicator */}
+    <article className={`notification-item ${!notification.isRead ? "unread" : ""}`}>
       {!notification.isRead && <div className="unread-dot" />}
 
-      {/* Avatar with Icon Badge */}
-      <div className="avatar-container">
-        <div className="avatar">{notification.user.profileImage ? <img src={notification.user.profileImage} alt={notification.user.name} className="avatar-image" /> : notification.user.name.charAt(0).toUpperCase()}</div>
-        <div className="icon-badge">{getNotificationIcon(notification.type)}</div>
-      </div>
-
-      {/* Content */}
-      <div className="notification-content">
-        <div className="notification-text">
-          <span className="user-name">{notification.user.name}</span>{" "}
-          <span className="action-text">{getNotificationText(notification)}</span>
+      {/* Main clickable area (real button) */}
+      <button
+        type="button"
+        className="notification-main"
+        onClick={markReadIfNeeded}
+        aria-label={`Notification from ${notification.user.name}: ${getNotificationText(notification)}`}
+      >
+        <div className="avatar-container">
+          <div className="avatar">
+            {notification.user.profileImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={notification.user.profileImage}
+                alt={notification.user.name}
+                className="avatar-image"
+              />
+            ) : (
+              notification.user.name.charAt(0).toUpperCase()
+            )}
+          </div>
+          <div className="icon-badge">{getNotificationIcon(notification.type)}</div>
         </div>
 
-        {notification.content && notification.type === "comment" && (
-          // eslint-disable-next-line react/no-unescaped-entities
-          <p className="comment-preview">"{notification.content}"</p>
-        )}
+        <div className="notification-content">
+          <div className="notification-text">
+            <span className="user-name">{notification.user.name}</span>{" "}
+            <span className="action-text">{getNotificationText(notification)}</span>
+          </div>
 
-        <time className="timestamp">{notification.timestamp}</time>
-      </div>
+          {notification.content && notification.type === "comment" && (
+            // eslint-disable-next-line react/no-unescaped-entities
+            <p className="comment-preview">"{notification.content}"</p>
+          )}
 
-      {/* Post Thumbnail or Follow Button */}
+          <time className="timestamp">{notification.timestamp}</time>
+        </div>
+      </button>
+
+      {/* Right side actions (NOT nested in the main button) */}
       {notification.postImage ? (
-        <div className="post-thumbnail">
-          <img
-            src={notification.postImage}
-            alt="Post"
-            className="thumbnail-image"
-          />
+        <div className="post-thumbnail" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={notification.postImage} alt="Post" className="thumbnail-image" />
         </div>
       ) : notification.type === "follow" ? (
-        <button className="follow-back-btn">Follow Back</button>
+        <button
+          type="button"
+          className="follow-back-btn"
+          onClick={() => {
+            // hook up later (follow mutation)
+          }}
+        >
+          Follow Back
+        </button>
       ) : null}
 
-      {/* More Options */}
-      <button className="more-btn" aria-label="More options">
+      <button type="button" className="more-btn" aria-label="More options">
         <MoreHorizontal size={20} strokeWidth={2} />
       </button>
 
@@ -108,7 +141,6 @@ export default function NotificationItem({
           padding: 16px 24px;
           background: white;
           border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-          cursor: pointer;
           transition: all 0.2s ease;
           position: relative;
         }
@@ -136,6 +168,25 @@ export default function NotificationItem({
           transform: translateY(-50%);
         }
 
+        .notification-main {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex: 1;
+          min-width: 0;
+          background: transparent;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          text-align: left;
+        }
+
+        .notification-main:focus-visible {
+          outline: 2px solid rgba(43, 135, 97, 0.6);
+          outline-offset: 4px;
+          border-radius: 12px;
+        }
+
         .avatar-container {
           position: relative;
           flex-shrink: 0;
@@ -153,6 +204,13 @@ export default function NotificationItem({
           font-family: "Poppins", sans-serif;
           font-weight: 600;
           font-size: 16px;
+          overflow: hidden;
+        }
+
+        .avatar-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
 
         .icon-badge {
@@ -273,6 +331,6 @@ export default function NotificationItem({
           color: currentColor;
         }
       `}</style>
-    </div>
+    </article>
   );
 }

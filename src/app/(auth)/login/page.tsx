@@ -37,6 +37,8 @@ export default function LoginPage() {
     // You would integrate with Google OAuth here
   };
 
+
+
   const displayError = localError || error;
 
   return (

@@ -1,161 +1,95 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import NotificationItem from "./NotificationItem";
+import NotificationItem, { type UINotification, type UINotificationType } from "./NotificationItem";
+import { useNotificationsLive } from "@/hooks/useNotifications";
+import type { Notification as ApiNotification } from "@/lib/queries";
 
-export type NotificationType = "like" | "comment" | "follow" | "mention" | "share";
-
-export interface Notification {
-  id: string;
-  type: NotificationType;
-  user: {
-    name: string;
-    profileImage?: string;
-  };
-  content?: string;
-  postImage?: string;
-  timestamp: string;
-  isRead: boolean;
+function formatTimeAgo(iso: string) {
+  const date = new Date(iso);
+  const diff = Date.now() - date.getTime();
+  const sec = Math.floor(diff / 1000);
+  if (sec < 60) return `${sec}s ago`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const day = Math.floor(hr / 24);
+  return `${day}d ago`;
 }
+function inferTypeFromMessage(message?: string | null): "like" | "comment" | "follow" | "mention" {
+  const m = (message ?? "").toLowerCase();
 
-const NOTIFICATIONS: Notification[] = [
-  {
-    id: "1",
-    type: "like",
-    user: {
-      name: "Sarah Johnson",
-      profileImage: "/api/placeholder/60/60",
-    },
-    timestamp: "2m ago",
-    isRead: false,
-    postImage: "/api/placeholder/60/60",
-  },
-  {
-    id: "2",
-    type: "comment",
-    user: {
-      name: "Michael Chen",
-      profileImage: "MO",
-    },
-    content: "Amazing shot! Where was this taken?",
-    timestamp: "15m ago",
-    isRead: false,
-    postImage: "/api/placeholder/60/60",
-  },
-  {
-    id: "3",
-    type: "follow",
-    user: {
-      name: "Emma Williams",
-      profileImage: "EW",
-    },
-    timestamp: "1h ago",
-    isRead: false,
-  },
-  {
-    id: "4",
-    type: "mention",
-    user: {
-      name: "David Park",
-      profileImage: "DP",
-    },
-    content: "mentioned you in a comment",
-    timestamp: "2h ago",
-    isRead: true,
-    postImage: "/api/placeholder/60/60",
-  },
-  {
-    id: "5",
-    type: "like",
-    user: {
-      name: "Olivia Martinez",
-      profileImage: "OM",
-    },
-    timestamp: "3h ago",
-    isRead: true,
-    postImage: "/api/placeholder/60/60",
-  },
-  {
-    id: "6",
-    type: "follow",
-    user: {
-      name: "James Wilson",
-      profileImage: "JW",
-    },
-    timestamp: "5h ago",
-    isRead: true,
-  },
-  {
-    id: "7",
-    type: "comment",
-    user: {
-      name: "Sophia Anderson",
-      profileImage: "SA",
-    },
-    content: "Love your content! Keep it up! 🔥",
-    timestamp: "6h ago",
-    isRead: true,
-    postImage: "/api/placeholder/60/60",
-  },
-  {
-    id: "8",
-    type: "share",
-    user: {
-      name: "Liam Thompson",
-      profileImage: "LT",
-    },
-    timestamp: "1d ago",
-    isRead: true,
-    postImage: "/api/placeholder/60/60",
-  },
-];
+  if (m.includes("liked")) return "like";
+  if (m.includes("comment")) return "comment";
+  if (m.includes("follow")) return "follow";
+  if (m.includes("mention")) return "mention";
 
+    return "mention";
+}
 export default function NotificationsList() {
   const router = useRouter();
-  const [notifications, setNotifications] = useState(NOTIFICATIONS);
-  const [filter, setFilter] = useState<"all" | "unread">("all");
 
-  const filteredNotifications = notifications.filter((notif) =>
+  const {
+    notifications: apiNotifications,
+    filter,
+    setFilter,
+    unreadCount,
+    loading,
+    error,
+    markAsRead,
+    markAllAsRead,
+  } = useNotificationsLive();
+
+  const uiNotifications: UINotification[] = useMemo(() => {
+    return (apiNotifications ?? []).map((n: ApiNotification) => {
+      // const type = (n.notificationType as UINotificationType) ?? "mention";
+
+      const rawType = String(n.notificationType ?? "mention").toLowerCase();
+
+      const type: UINotificationType =
+        rawType === "like" || rawType === "comment" || rawType === "follow" || rawType === "mention"
+          ? (rawType as UINotificationType)
+          : "mention";
+
+      return {
+        id: n.id,
+        // type,
+        user: {
+          name: n.sender?.username ?? "Unknown",
+          profileImage: n.sender?.profileImage ?? undefined,
+        },
+        type: inferTypeFromMessage(n.message),
+        content: n.message || undefined,
+
+        // if your post has image field and you include it in query, use it here
+        postImage: n.post?.image ?? null,
+        timestamp: n.createdAt ? formatTimeAgo(n.createdAt) : "now",
+        isRead: n.isRead,
+      };
+    });
+  }, [apiNotifications]);
+
+  const filteredNotifications = uiNotifications.filter((notif) =>
     filter === "all" ? true : !notif.isRead
   );
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
-
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((notif) =>
-        notif.id === id ? { ...notif, isRead: true } : notif
-      )
-    );
-  };
-
-  const markAllAsRead = () => {
-    setNotifications((prev) =>
-      prev.map((notif) => ({ ...notif, isRead: true }))
-    );
-  };
-
-  const handleBack = () => {
-    router.push("/feed");
-  };
+  const handleBack = () => router.push("/feed");
 
   return (
     <div className="notifications-wrapper">
-      {/* Header */}
       <header className="notifications-header">
         <div className="header-top">
           <div className="header-left">
-            <button 
-              className="back-button" 
-              onClick={handleBack}
-              aria-label="Back to feed"
-            >
+            <button className="back-button" onClick={handleBack} aria-label="Back to feed">
               <ArrowLeft size={24} strokeWidth={2} />
             </button>
             <h1 className="page-title">Notifications</h1>
           </div>
+
           {unreadCount > 0 && (
             <button className="mark-all-btn" onClick={markAllAsRead}>
               Mark all as read
@@ -163,30 +97,38 @@ export default function NotificationsList() {
           )}
         </div>
 
-        {/* Filter Tabs */}
         <div className="filter-tabs">
           <button
             className={`filter-tab ${filter === "all" ? "active" : ""}`}
             onClick={() => setFilter("all")}
           >
-            All
-            <span className="count">{notifications.length}</span>
+            All <span className="count">{uiNotifications.length}</span>
           </button>
+
           <button
             className={`filter-tab ${filter === "unread" ? "active" : ""}`}
             onClick={() => setFilter("unread")}
           >
-            Unread
-            {unreadCount > 0 && (
-              <span className="count unread-count">{unreadCount}</span>
-            )}
+            Unread{" "}
+            {unreadCount > 0 && <span className="count unread-count">{unreadCount}</span>}
           </button>
         </div>
       </header>
 
-      {/* Notifications List */}
       <div className="notifications-list">
-        {filteredNotifications.length > 0 ? (
+        {loading ? (
+          <div className="empty-state">
+            <div className="empty-icon">🔔</div>
+            <p className="empty-text">Loading notifications…</p>
+            <p className="empty-subtext">Please wait</p>
+          </div>
+        ) : error ? (
+          <div className="empty-state">
+            <div className="empty-icon">⚠️</div>
+            <p className="empty-text">Couldn’t load notifications</p>
+            <p className="empty-subtext">{error}</p>
+          </div>
+        ) : filteredNotifications.length > 0 ? (
           filteredNotifications.map((notification) => (
             <NotificationItem
               key={notification.id}
@@ -197,10 +139,12 @@ export default function NotificationsList() {
         ) : (
           <div className="empty-state">
             <div className="empty-icon">🔔</div>
-            <p className="empty-text">No {filter === "unread" ? "unread" : ""} notifications</p>
+            <p className="empty-text">
+              No {filter === "unread" ? "unread" : ""} notifications
+            </p>
             <p className="empty-subtext">
-              {filter === "unread" 
-                ? "You're all caught up!" 
+              {filter === "unread"
+                ? "You're all caught up!"
                 : "When you get notifications, they'll show up here"}
             </p>
           </div>
@@ -258,10 +202,6 @@ export default function NotificationsList() {
 
         .back-button:active {
           transform: translateX(0);
-        }
-
-        .back-button :global(svg) {
-          color: currentColor;
         }
 
         .page-title {
@@ -375,7 +315,6 @@ export default function NotificationsList() {
           margin: 0;
         }
 
-        /* Responsive */
         @media (max-width: 480px) {
           .page-title {
             font-size: 24px;

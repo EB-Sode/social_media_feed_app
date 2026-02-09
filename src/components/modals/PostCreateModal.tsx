@@ -32,9 +32,13 @@ export default function PostCreateModal({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Optional: validate size/type here
     if (!file.type.startsWith("image/")) {
       showToast("Please select a valid image", "error");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("Image size must be less than 5MB", "error");
       return;
     }
 
@@ -65,16 +69,16 @@ export default function PostCreateModal({
 
     setIsSubmitting(true);
     try {
+      // Call updated createPost from useFeed
       await onSubmit(content.trim(), imageFile || undefined);
 
-      // Reset
+      // Reset after successful submission
       setContent("");
       handleRemoveImage();
-      showToast("Post created successfully!", "success");
       onClose();
     } catch (error) {
       console.error("Failed to create post:", error);
-      showToast("Failed to create post", "error");
+      // Error toast is handled in useFeed
     } finally {
       setIsSubmitting(false);
     }
@@ -83,7 +87,7 @@ export default function PostCreateModal({
   /** Handle modal close */
   const handleClose = () => {
     if (isSubmitting) return;
-    if (content || imageFile && !confirm("Discard this post?")) return;
+    if ((content || imageFile) && !confirm("Discard this post?")) return;
 
     setContent("");
     handleRemoveImage();
@@ -94,7 +98,10 @@ export default function PostCreateModal({
 
   return (
     <>
+      {/* Backdrop */}
       <div className="modal-backdrop" onClick={handleClose} />
+
+      {/* Modal */}
       <div className="modal-container">
         <div className="modal-content">
           {/* Header */}
@@ -115,11 +122,7 @@ export default function PostCreateModal({
             {/* User Info */}
             <div className="user-info">
               <div className="avatar">
-                {userAvatar ? (
-                  <img src={userAvatar} alt={username} />
-                ) : (
-                  username.charAt(0).toUpperCase()
-                )}
+                {userAvatar ? <img src={userAvatar} alt={username} /> : username[0].toUpperCase()}
               </div>
               <span className="username">{username}</span>
             </div>
@@ -161,6 +164,7 @@ export default function PostCreateModal({
                 style={{ display: "none" }}
                 disabled={isSubmitting}
               />
+
               <button
                 type="button"
                 className="image-btn"
@@ -189,7 +193,6 @@ export default function PostCreateModal({
           </form>
         </div>
       </div>
-
       <style jsx>{`
         .modal-backdrop {
           position: fixed;
@@ -369,15 +372,6 @@ export default function PostCreateModal({
           background: rgba(0, 0, 0, 0.9);
         }
 
-        .upload-progress {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 16px 24px;
-          color: #6b7280;
-          font-size: 14px;
-        }
-
         .modal-actions {
           display: flex;
           align-items: center;
@@ -436,8 +430,7 @@ export default function PostCreateModal({
           cursor: not-allowed;
         }
 
-        .submit-btn :global(.spinner),
-        .upload-progress :global(.spinner) {
+        .submit-btn :global(.spinner) {
           animation: spin 1s linear infinite;
         }
 

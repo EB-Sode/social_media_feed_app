@@ -5,27 +5,16 @@ import { getAuthenticatedClient } from "@/lib/graphql";
 import {
   GET_USER_POSTS,
   GET_FOLLOW_STATS,
+  GET_USER_BY_ID,
   FOLLOW_USER_MUTATION,
   UNFOLLOW_USER_MUTATION,
+  DELETE_POST_MUTATION,
   UPDATE_PROFILE_MUTATION,
-  DELETE_POST_MUTATION, // UPDATED: Import the mutation
   type User,
   type Post,
   type FollowStats,
 } from "@/lib/queries";
 
-interface UpdateProfileVariables {
-  username?: string;
-  email?: string;
-  bio?: string;
-  avatar?: string; // UPDATED: Changed from profileImage to match mutation
-}
-
-/**
- * Hook for managing user profile data and actions
- * UPDATED: Removed unused second parameter
- * @param userId - The ID of the user whose profile to load
- */
 export function useProfile(userId: string) {
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -33,10 +22,6 @@ export function useProfile(userId: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  /**
-   * Load all profile data (posts and follow stats)
-   * UPDATED: Memoized with useCallback for consistency
-   */
   const loadProfile = useCallback(async () => {
     if (!userId) {
       setLoading(false);
@@ -49,20 +34,23 @@ export function useProfile(userId: string) {
     try {
       const client = getAuthenticatedClient();
 
-      // Fetch posts and follow stats in parallel
-      // UPDATED: Use Promise.all for better performance
-      const [postsResponse, statsResponse] = await Promise.all([
+      const [userRes, postsRes, statsRes] = await Promise.all([
+        client.request<{ user: User | null }>(GET_USER_BY_ID, { userId }),
         client.request<{ userPosts: Post[] }>(GET_USER_POSTS, { userId }),
         client.request<{ followStats: FollowStats }>(GET_FOLLOW_STATS, { userId }),
       ]);
 
-      setPosts(postsResponse.userPosts);
-      setFollowStats(statsResponse.followStats);
-      
-      // Extract user from first post if available
-      if (postsResponse.userPosts.length > 0) {
-        setUser(postsResponse.userPosts[0].author);
+      if (!userRes.user) {
+        setUser(null);
+        setPosts([]);
+        setFollowStats(statsRes.followStats ?? null);
+        setError("User not found");
+        return;
       }
+
+      setPosts(postsRes.userPosts ?? []);
+      setFollowStats(statsRes.followStats ?? null);
+      setUser(userRes.user);
     } catch (err) {
       console.error("Failed to load profile:", err);
       setError("Failed to load profile");
@@ -71,19 +59,50 @@ export function useProfile(userId: string) {
     }
   }, [userId]);
 
-  // UPDATED: Simplified effect
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
 
   /**
-   * Follow a user
-   * UPDATED: Added optimistic updates and error rollback
+   * Update profile
+   * Supports: bio, email, profileImage (as URL string)
+   * Does NOT support: username, location, coverImage (not in backend mutation)
    */
+  const updateProfile = async (input: {
+    bio?: string;
+    email?: string;
+    profileImage?: string;  // URL string, not File
+  }) => {
+    try {
+      const client = getAuthenticatedClient();
+
+      // Only send fields that are defined
+      const variables: {
+        bio?: string;
+        email?: string;
+        profileImage?: string;
+      } = {};
+      
+      if (input.bio !== undefined) variables.bio = input.bio;
+      if (input.email !== undefined) variables.email = input.email;
+      if (input.profileImage !== undefined) variables.profileImage = input.profileImage;
+
+      const res = await client.request<{ 
+        updateProfile: { user: User } 
+      }>(UPDATE_PROFILE_MUTATION, variables);
+
+      // Update local state with backend response
+      setUser(res.updateProfile.user);
+
+      return res.updateProfile.user;
+    } catch (err) {
+      console.error("Failed to update profile:", err);
+      throw err;
+    }
+  };
+
   const followUser = async () => {
     if (!userId || !followStats) return;
-
-    // Store previous state for rollback
     const previousStats = { ...followStats };
 
     try {
@@ -97,21 +116,15 @@ export function useProfile(userId: string) {
       const client = getAuthenticatedClient();
       await client.request(FOLLOW_USER_MUTATION, { userId });
     } catch (err) {
-      console.error("Follow user error:", err);
+      console.error(err);
       // Rollback on error
       setFollowStats(previousStats);
       throw err;
     }
   };
 
-  /**
-   * Unfollow a user
-   * UPDATED: Added optimistic updates and error rollback
-   */
   const unfollowUser = async () => {
     if (!userId || !followStats) return;
-
-    // Store previous state for rollback
     const previousStats = { ...followStats };
 
     try {
@@ -119,60 +132,30 @@ export function useProfile(userId: string) {
       setFollowStats({
         ...followStats,
         isFollowing: false,
-        followersCount: followStats.followersCount - 1,
+        followersCount: Math.max(0, followStats.followersCount - 1),
       });
 
       const client = getAuthenticatedClient();
       await client.request(UNFOLLOW_USER_MUTATION, { userId });
     } catch (err) {
-      console.error("Unfollow user error:", err);
+      console.error(err);
       // Rollback on error
       setFollowStats(previousStats);
       throw err;
     }
   };
 
-  /**
-   * Update user profile
-   * UPDATED: Fixed mutation response type
-   * @param variables - Profile fields to update
-   */
-  const updateProfile = async (variables: UpdateProfileVariables) => {
-    if (!user) return;
-
-    try {
-      const client = getAuthenticatedClient();
-      const { updateProfile } = await client.request<{ 
-        updateProfile: { user: User } 
-      }>(UPDATE_PROFILE_MUTATION, variables);
-
-      // UPDATED: Access nested user object
-      setUser(updateProfile.user);
-      return updateProfile.user;
-    } catch (err) {
-      console.error("Update profile error:", err);
-      throw err;
-    }
-  };
-
-  /**
-   * Delete a post from the profile
-   * UPDATED: Now uses DELETE_POST_MUTATION
-   * @param postId - ID of the post to delete
-   */
   const deletePost = async (postId: string) => {
-    // Store previous state for rollback
     const previousPosts = [...posts];
 
     try {
-      // Optimistically remove from UI
+      // Optimistic update
       setPosts((prev) => prev.filter((p) => p.id !== postId));
       
-      // UPDATED: Call the actual mutation
       const client = getAuthenticatedClient();
       await client.request(DELETE_POST_MUTATION, { postId });
     } catch (err) {
-      console.error("Failed to delete post:", err);
+      console.error(err);
       // Rollback on error
       setPosts(previousPosts);
       throw err;
@@ -185,10 +168,10 @@ export function useProfile(userId: string) {
     followStats,
     loading,
     error,
-    refetch: loadProfile, // UPDATED: Now properly memoized
+    refetch: loadProfile,
     followUser,
     unfollowUser,
+    deletePost,
     updateProfile,
-    deletePost, // UPDATED: Added delete functionality
   };
 }
