@@ -1,27 +1,50 @@
 "use client";
 
 import React from "react";
+import { useFollowersList } from "@/hooks/useFollowers";
 
-const FOLLOWERS = [
-  { id: 1, name: "Dr. saillivan Ochenaze" },
-  { id: 2, name: "Francis Ricardo" },
-  { id: 3, name: "Chideathem williams" },
-  { id: 4, name: "Mbuotidem Etuk" },
-];
+interface FollowersListProps {
+  userId: string;
+  mode?: "followers" | "following";
+  limit?: number;
+  seeMoreHref?: string;
+  showSeeMore?: boolean;
+  refreshKey?: number; // ✅
+}
 
-export default function FollowersList() {
+export default function FollowersList({
+  userId,
+  mode = "followers",
+  limit,
+  seeMoreHref,
+  showSeeMore = true,
+  refreshKey = 0, // ✅
+}: FollowersListProps) {
+  const { users, loading, error } = useFollowersList(userId, mode, refreshKey); // ✅
+
   return (
     <div className="followers-container">
       <div className="followers-header">
-        <h2 className="followers-title">Followers/Following</h2>
+        <h2 className="followers-title">
+          {mode === "followers" ? "Followers" : "Following"}
+        </h2>
       </div>
 
       <div className="followers-list">
-        {FOLLOWERS.map((follower) => (
-          <div key={follower.id} className="follower-item">
-            <span className="follower-name">{follower.name}</span>
-          </div>
-        ))}
+        {loading && <span>Loading...</span>}
+
+        {!loading &&
+          users.map((user) => (
+            <div key={user.id} className="follower-item">
+              <span className="follower-name">{user.username}</span>
+            </div>
+          ))}
+
+        {!loading && users.length === 0 && (
+          <span style={{ textAlign: "center", opacity: 0.6 }}>
+            No users yet
+          </span>
+        )}
       </div>
 
       <style jsx>{`

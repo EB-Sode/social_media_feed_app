@@ -1,74 +1,144 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Heart,
   MessageCircle,
   Send,
   Bookmark,
   MoreHorizontal,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import type { UIPost } from "@/lib/mappers/post.mapper";
+import { imgSrc } from "@/lib/image";
 
 interface PostCardProps {
   post: UIPost;
+  currentUserId?: string;
   onLike?: (postId: string) => void;
-  onDelete?: (postId: string) => void; // UPDATED: Added delete callback
+  onDelete?: (postId: string) => void;
+  onEdit?: (postId: string) => void;
 }
 
-export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
-  /**
-   * Handle like button click
-   */
-  const handleLike = () => {
+export default function PostCard({
+  post,
+  currentUserId,
+  onLike,
+  onDelete,
+  onEdit,
+}: PostCardProps) {
+  const router = useRouter();
+
+  const isOwner = currentUserId && String(currentUserId) === String(post.authorId);
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  const goToPost = () => router.push(`/post/${post.id}`);
+
+  // Close menu if user clicks outside
+  useEffect(() => {
+    const onDocClick = (ev: MouseEvent) => {
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(ev.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
+  }, []);
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.stopPropagation();
     onLike?.(post.id);
   };
 
-  /**
-   * Handle delete (would show confirmation modal in production)
-   */
-  const handleDelete = () => {
+  const toggleMenu = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen((v) => !v);
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen(false);
+    onEdit?.(post.id);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen(false);
+    if (!onDelete) return;
+
     if (confirm("Are you sure you want to delete this post?")) {
-      onDelete?.(post.id);
+      onDelete(post.id);
     }
   };
 
+  const avatar = imgSrc(post.authorAvatar, "");
+
   return (
-    <article className="post-card">
+    <article
+      className="post-card"
+      role="button"
+      tabIndex={0}
+      onClick={goToPost}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") goToPost();
+      }}
+    >
       {/* Header */}
       <div className="post-header">
         <div className="author-section">
-          <Link href={`/profile/${post.authorId}`} className="avatar">
-            {post.authorAvatar ? (
-              <img src={post.authorAvatar} alt={post.authorName} />
+          <Link
+            href={`/profile/${post.authorId}`}
+            className="avatar"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {avatar ? (
+              <img src={avatar} alt={post.authorName} />
             ) : (
-              post.authorName.charAt(0).toUpperCase()
+              post.authorName?.charAt(0).toUpperCase()
             )}
           </Link>
 
           <div className="author-info">
-            <Link href={`/profile/${post.authorId}`}>
+            <Link href={`/profile/${post.authorId}`} onClick={(e) => e.stopPropagation()}>
               <h3 className="author-name">{post.authorName}</h3>
             </Link>
             <p className="timestamp">{post.timestamp}</p>
           </div>
         </div>
 
-        {/* UPDATED: Added delete functionality if callback provided */}
-        {onDelete && (
-          <button 
-            className="icon-btn" 
-            onClick={handleDelete}
-            aria-label="Delete post"
-          >
-            <MoreHorizontal size={20} />
-          </button>
+        {/* Options menu (owner only) */}
+        {isOwner && (onDelete || onEdit) && (
+          <div className="menu-wrap" ref={menuRef}>
+            <button className="icon-btn" onClick={toggleMenu} aria-label="Post options">
+              <MoreHorizontal size={20} />
+            </button>
+
+            {menuOpen && (
+              <div className="menu" onClick={(e) => e.stopPropagation()}>
+                {onEdit && (
+                  <button className="menu-item" onClick={handleEdit}>
+                    <Pencil size={16} />
+                    Edit
+                  </button>
+                )}
+                {onDelete && (
+                  <button className="menu-item danger" onClick={handleDelete}>
+                    <Trash2 size={16} />
+                    Delete
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         )}
       </div>
 
-      {/* Content - UPDATED: Show content before image for better layout */}
+      {/* Content */}
       {post.content && (
         <div className="post-content">
           <p>{post.content}</p>
@@ -77,13 +147,13 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
 
       {/* Image */}
       {post.image && (
-        <Link href={`/post/${post.id}`} className="post-image-container">
-          <img src={post.image} alt="Post image" />
-        </Link>
+        <div className="post-image-container">
+          <img src={imgSrc(post.image)} alt="Post image" />
+        </div>
       )}
 
       {/* Actions */}
-      <div className="post-actions">
+      <div className="post-actions" onClick={(e) => e.stopPropagation()}>
         <div className="actions-left">
           <button
             className={`icon-btn ${post.isLiked ? "liked" : ""}`}
@@ -93,13 +163,13 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
             <Heart size={22} fill={post.isLiked ? "#ef4444" : "none"} />
           </button>
 
-          <Link
-            href={`/post/${post.id}`}
+          <button
             className="icon-btn"
+            onClick={() => router.push(`/post/${post.id}`)}
             aria-label="View comments"
           >
             <MessageCircle size={22} />
-          </Link>
+          </button>
 
           <button className="icon-btn" aria-label="Share post">
             <Send size={22} />
@@ -111,25 +181,22 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
         </button>
       </div>
 
-      {/* Meta */}
-      <div className="post-meta">
-        <p className="likes">
-          {post.likes} {post.likes === 1 ? "like" : "likes"}
-        </p>
-
-        {post.commentsCount > 0 && (
-          <Link href={`/post/${post.id}`} className="view-comments">
-            View all {post.commentsCount} comments
-          </Link>
-        )}
-      </div>
-
       <style jsx>{`
         .post-card {
           background: white;
+          border: 2px solid #e5e7eb;
           border-radius: 16px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.08);
           overflow: hidden;
+          cursor: pointer;
+          outline: none;
+          max-width: 600px;
+          margin: 0 auto;
+          transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+
+        .post-card:focus-visible {
+          box-shadow: 0 0 0 3px rgba(43, 135, 97, 0.25);
         }
 
         .post-header {
@@ -137,6 +204,7 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          position: relative;
         }
 
         .author-section {
@@ -174,11 +242,6 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
           font-size: 14px;
           font-weight: 600;
           margin: 0;
-          transition: color 0.2s;
-        }
-
-        .author-name:hover {
-          color: #2b8761;
         }
 
         .timestamp {
@@ -189,16 +252,6 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
 
         .post-content {
           padding: 0 16px 12px;
-        }
-
-        .post-content p {
-          font-size: 14px;
-          line-height: 1.5;
-          margin: 0;
-        }
-
-        .post-image-container {
-          display: block;
         }
 
         .post-image-container img {
@@ -237,31 +290,47 @@ export default function PostCard({ post, onLike, onDelete }: PostCardProps) {
           opacity: 0.7;
         }
 
-        .icon-btn.liked :global(svg) {
-          fill: #ef4444;
-          stroke: #ef4444;
+        /* menu */
+        .menu-wrap {
+          position: relative;
         }
 
-        .post-meta {
-          padding: 0 16px 16px;
+        .menu {
+          position: absolute;
+          right: 0;
+          top: 36px;
+          background: white;
+          border: 1px solid #e5e7eb;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+          border-radius: 12px;
+          overflow: hidden;
+          min-width: 160px;
+          z-index: 20;
         }
 
-        .likes {
-          font-size: 13px;
-          font-weight: 600;
-          margin: 0 0 6px 0;
+        .menu-item {
+          width: 100%;
+          padding: 10px 12px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-size: 14px;
+          color: #111827;
         }
 
-        .view-comments {
-          font-size: 13px;
-          color: #6b7280;
-          text-decoration: none;
-          display: inline-block;
-          transition: color 0.2s;
+        .menu-item:hover {
+          background: #f9fafb;
         }
 
-        .view-comments:hover {
-          color: #1f2937;
+        .menu-item.danger {
+          color: #ef4444;
+        }
+
+        .menu-item.danger:hover {
+          background: rgba(239, 68, 68, 0.06);
         }
       `}</style>
     </article>

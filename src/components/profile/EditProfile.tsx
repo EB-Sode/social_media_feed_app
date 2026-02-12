@@ -4,6 +4,7 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Camera, Image as ImageIcon } from "lucide-react";
+import { imgSrc } from "@/lib/image";
 
 interface EditProfileProps {
   user: {
@@ -68,15 +69,8 @@ export default function EditProfile({ user, onClose, onSave }: EditProfileProps)
     });
   };
 
-  const avatarSrc =
-    avatarPreview ||
-    user.profileImage ||
-    "/api/placeholder/120/120";
-
-  const coverSrc =
-    coverPreview ||
-    user.coverImage ||
-    "/api/placeholder/800/300";
+  const avatarSrc = avatarPreview || imgSrc(user.profileImage);
+  const coverSrc = coverPreview || imgSrc(user.coverImage, "/default-cover.png");
 
   return (
     <div className="edit-profile-overlay">

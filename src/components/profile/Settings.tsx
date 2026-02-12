@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -27,9 +28,37 @@ interface SettingsProps {
 
 export default function Settings({ onClose, onEditProfile }: SettingsProps) {
   const router = useRouter();
+  const go = (path: string) => {
+    onClose();
+    router.push(path);
+  };
 
   const handleLogout = () => {
     clearTokens();
+    router.push("/login");
+  };
+  const handleFreeUpSpace = () => {
+    // clears local-only caches you control
+    localStorage.removeItem("feedCache");
+    localStorage.removeItem("usersCache");
+    // you can add more keys as you introduce caching
+    alert("Freed up space (local cache cleared).");
+  };
+  const handleDataSaver = () => {
+    const current = localStorage.getItem("dataSaver") === "true";
+    localStorage.setItem("dataSaver", (!current).toString());
+    alert(`Data Saver: ${!current ? "ON" : "OFF"}`);
+  };
+
+  const handleReportProblem = () => {
+    onClose();
+    // simplest: go to a report page
+    router.push("/settings/report");
+  };
+
+  const handleAddAccount = () => {
+    onClose();
+    // simplest: go to login (or account switcher page later)
     router.push("/login");
   };
 
@@ -45,31 +74,31 @@ export default function Settings({ onClose, onEditProfile }: SettingsProps) {
             onEditProfile(); // open edit profile
           },
         },
-        { icon: Shield, label: "Security", onClick: () => {} },
-        { icon: Bell, label: "Notifications", onClick: () => {} },
-        { icon: Lock, label: "Privacy", onClick: () => {} },
+        { icon: Shield, label: "Security", onClick: () => go("/settings/security") },
+        { icon: Bell, label: "Notifications", onClick: () => go("/notifications") },
+        { icon: Lock, label: "Privacy", onClick: () => go("/settings/privacy") },
       ],
     },
     {
       title: "Support & About",
       items: [
-        { icon: CreditCard, label: "My Subscription", onClick: () => {} },
-        { icon: HelpCircle, label: "Help & Support", onClick: () => {} },
-        { icon: FileText, label: "Terms and Policies", onClick: () => {} },
+        { icon: CreditCard, label: "My Subscription", onClick: () => go("/settings/subscription") },
+        { icon: HelpCircle, label: "Help & Support", onClick: () => go("/settings/help") },
+        { icon: FileText, label: "Terms and Policies", onClick: () => go("/settings/terms") },
       ],
     },
     {
       title: "Cache & cellular",
       items: [
-        { icon: Trash2, label: "Free up space", onClick: () => {} },
-        { icon: Save, label: "Data Saver", onClick: () => {} },
+        { icon: Trash2, label: "Free up space", onClick: handleFreeUpSpace },
+        { icon: Save, label: "Data Saver", onClick: handleDataSaver },
       ],
     },
     {
       title: "Actions",
       items: [
-        { icon: Flag, label: "Report a problem", onClick: () => {} },
-        { icon: UserPlus, label: "Add account", onClick: () => {} },
+        { icon: Flag, label: "Report a problem", onClick: handleReportProblem },
+        { icon: UserPlus, label: "Add account", onClick: handleAddAccount },
         { icon: LogOut, label: "Log out", onClick: handleLogout },
       ],
     },
@@ -115,15 +144,14 @@ export default function Settings({ onClose, onEditProfile }: SettingsProps) {
       </div>
 
       <style jsx>{`
-        .settings-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: #b1f5bf;
-          z-index: 100;
-          overflow-y: auto;
+      .settings-overlay {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 999999; /* must be higher than your right sidebar */
+        background: #b1f5bf; /* solid so nothing shows behind */
+        overflow-y: auto;
         }
 
         .settings-container {

@@ -66,7 +66,7 @@ export default function NotificationsList() {
         content: n.message || undefined,
 
         // if your post has image field and you include it in query, use it here
-        postImage: n.post?.image ?? null,
+        postImage: n.post?.imageUrl ?? null,
         timestamp: n.createdAt ? formatTimeAgo(n.createdAt) : "now",
         isRead: n.isRead,
       };

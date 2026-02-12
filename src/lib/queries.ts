@@ -13,22 +13,15 @@ export interface User {
   username: string;
   email?: string;
   bio?: string | null;
-  profileImage?: string | null;   // ✅ Was "avatar"
-  location?: string | null;        // ✅ Added
-  birthDate?: string | null;       // ✅ Added
-  coverImage?: string | null;      // ✅ Added
+  profileImage?: string | null;  
+  location?: string | null;   
+  birthDate?: string | null; 
+  coverImage?: string | null;
   createdAt?: string;
   followersCount?: number;
   followingCount?: number;
   postsCount?: number;
 }
-
-// export type UserProfileUI = User & {
-//   role: string;
-//   coverImage: string;
-//   likes: string;
-//   location: string;
-// };
 
 export interface AuthResponse {
   user: User;
@@ -46,7 +39,7 @@ export interface Comment {
 export interface Post {
   id: string;
   content: string;
-  image?: string | null;
+  imageUrl?: string | null;
   author: User;
   createdAt: string;
   updatedAt: string;
@@ -81,6 +74,15 @@ export interface Notification {
 // QUERIES
 // ============================================================================
 
+export const GET_ME = `
+  query Me {
+    me {
+      id
+      username
+    }
+  }
+`;
+
 export const GET_USERS = `
   query GetUsers {
     users {
@@ -95,6 +97,31 @@ export const GET_USERS = `
   }
 `;
 
+export const GET_ALL_USERS = `
+  query GetAllUsers {
+    users {
+      id
+      username
+      bio
+      profileImage
+      coverImage
+      location
+    }
+  }
+`;
+
+export const SEARCH_USERS = `
+  query SearchUsers($query: String!) {
+    searchUsers(query: $query) {
+      id
+      username
+      bio
+      profileImage
+      coverImage
+      location
+    }
+  }
+`;
 export const GET_USER_BY_USERNAME = `
   query GetUserByUsername($username: String!) {
     userByUsername(username: $username) {
@@ -130,7 +157,7 @@ export const GET_FEED = `
     feed {
       id
       content
-      image
+      imageUrl
       createdAt
       updatedAt
       likesCount
@@ -150,36 +177,40 @@ export const GET_POST_BY_ID = `
     post(id: $postId) {
       id
       content
-      image
-      author {
-        id
-        username
-        email
-      }
+      imageUrl
       createdAt
       updatedAt
       likesCount
       commentsCount
-      isLiked
-      comments {
+      isLikedByUser
+      author {
         id
-        content
-        author {
-          id
-          username
-        }
-        createdAt
+        username
+        email
+        profileImage
+      }
+    }
+
+    comments(postId: $postId) {
+      id
+      content
+      createdAt
+      author {
+        id
+        username
+        profileImage
       }
     }
   }
 `;
+
 
 export const GET_USER_POSTS = `
   query GetUserPosts($userId: ID!) {
     userPosts(userId: $userId) {
       id
       content
-      image
+      imageUrl
       author {
         id
         username
@@ -203,6 +234,34 @@ export const GET_FOLLOW_STATS = `
   }
 `;
 
+export const GET_FOLLOWERS = `
+  query GetFollowers($userId: ID!) {
+    followers(userId: $userId) {
+      id
+      follower {
+        id
+        username
+        profileImage
+        bio
+      }
+    }
+  }
+`;
+
+export const GET_FOLLOWING = `
+  query GetFollowing($userId: ID!) {
+    following(userId: $userId) {
+      id
+      followed {
+        id
+        username
+        profileImage
+        bio
+      }
+    }
+  }
+`;
+
 export const GET_NOTIFICATIONS = `
   query GetNotifications($limit: Int, $unreadOnly: Boolean) {
     notifications(limit: $limit, unreadOnly: $unreadOnly) {
@@ -218,7 +277,7 @@ export const GET_NOTIFICATIONS = `
       post {
         id
         content
-        image
+        imageUrl
       }
     }
   }
@@ -292,12 +351,12 @@ export const REFRESH_TOKEN_MUTATION = `
 // ============================================================================
 
 export const CREATE_POST_MUTATION = `
-  mutation CreatePost($content: String!, $image: String) {
+  mutation CreatePost($content: String!, $image: Upload) {
     createPost(content: $content, image: $image) {
       post {
         id
         content
-        image
+        imageUrl
         createdAt
         updatedAt
         likesCount
@@ -331,6 +390,7 @@ export const LIKE_POST_MUTATION = `
 export const CREATE_COMMENT_MUTATION = `
   mutation CreateComment($postId: ID!, $content: String!) {
     createComment(postId: $postId, content: $content) {
+      success
       comment {
         id
         content
@@ -349,6 +409,7 @@ export const DELETE_POST_MUTATION = `
   mutation DeletePost($postId: ID!) {
     deletePost(postId: $postId) {
       success
+      message
     }
   }
 `;
@@ -356,6 +417,8 @@ export const DELETE_POST_MUTATION = `
 export const UPDATE_POST_MUTATION = `
   mutation UpdatePost($postId: ID!, $content: String, $image: String) {
     updatePost(postId: $postId, content: $content, image: $image) {
+      success
+      message
       post {
         id
         content
@@ -372,10 +435,14 @@ export const UPDATE_POST_MUTATION = `
 // FOLLOW MUTATIONS
 // ============================================================================
 
+
 export const FOLLOW_USER_MUTATION = `
   mutation FollowUser($userId: ID!) {
     followUser(userId: $userId) {
       success
+      follow {
+        id
+      }
     }
   }
 `;
@@ -387,7 +454,6 @@ export const UNFOLLOW_USER_MUTATION = `
     }
   }
 `;
-
 // ============================================================================
 // NOTIFICATION MUTATIONS
 // ============================================================================

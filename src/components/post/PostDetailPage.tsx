@@ -1,19 +1,31 @@
-// components/post/PostDetailPage.tsx
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Heart, MessageCircle, Share2, MoreVertical } from "lucide-react";
+import {
+  ArrowLeft,
+  Heart,
+  MessageCircle,
+  Share2,
+  MoreVertical,
+  X,
+  Trash2,
+  Pencil,
+} from "lucide-react";
 import { getAuthenticatedClient } from "@/lib/graphql";
 import {
   GET_POST_BY_ID,
   LIKE_POST_MUTATION,
   CREATE_COMMENT_MUTATION,
+  DELETE_POST_MUTATION,
+  UPDATE_POST_MUTATION,
   type Post,
   type Comment,
 } from "@/lib/queries";
 import { useAuth } from "@/context/AuthContext";
+import { imgSrc } from "@/lib/image";
 
 export default function PostDetailPage() {
   const params = useParams();
@@ -24,11 +36,26 @@ export default function PostDetailPage() {
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const [commentText, setCommentText] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
 
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState("");
+
+  const isOwner =
+    !!currentUser?.id &&
+    !!post?.author?.id &&
+    String(currentUser.id) === String(post.author.id);
+    console.log("currentUser.id", currentUser?.id);
+    console.log("post.author.id", post?.author?.id);
+    console.log("isOwner", isOwner);
+
   // Fetch post
   useEffect(() => {
+    let mounted = true;
+
     async function fetchPost() {
       setLoading(true);
       setError(null);
@@ -36,17 +63,34 @@ export default function PostDetailPage() {
       try {
         const client = getAuthenticatedClient();
         const data = await client.request<{ post: Post }>(GET_POST_BY_ID, { postId });
+        if (!mounted) return;
         setPost(data.post);
+        setEditText(data.post?.content ?? "");
       } catch (err) {
         console.error("Error fetching post:", err);
+        if (!mounted) return;
         setError(err instanceof Error ? err.message : "Failed to load post");
       } finally {
+        if (!mounted) return;
         setLoading(false);
       }
     }
 
     if (postId) fetchPost();
+
+    return () => {
+      mounted = false;
+    };
   }, [postId]);
+
+  // Close menu on Escape
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   // Like post
   const handleLike = async () => {
@@ -62,7 +106,11 @@ export default function PostDetailPage() {
       const updatedPost = data.likePost.post;
       setPost((prev) =>
         prev
-          ? { ...prev, likesCount: updatedPost.likesCount, isLikedByUser: updatedPost.isLikedByUser }
+          ? {
+              ...prev,
+              likesCount: updatedPost.likesCount,
+              isLikedByUser: updatedPost.isLikedByUser,
+            }
           : prev
       );
     } catch (err) {
@@ -103,6 +151,62 @@ export default function PostDetailPage() {
     }
   };
 
+  const handleStartEdit = () => {
+    if (!post) return;
+    setEditText(post.content ?? "");
+    setIsEditing(true);
+    setMenuOpen(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditText(post?.content ?? "");
+  };
+
+  const handleSaveEdit = async () => {
+    if (!post) return;
+
+    const next = editText.trim();
+    if (!next) {
+      alert("Post content cannot be empty.");
+      return;
+    }
+
+    try {
+      const client = getAuthenticatedClient();
+
+      const res = await client.request<{
+        updatePost: { success: boolean; message?: string; post: { id: string; content: string; updatedAt?: string } };
+      }>(UPDATE_POST_MUTATION, { postId, content: next });
+
+      const updatedContent = res.updatePost?.post?.content ?? next;
+      const updatedAt = res.updatePost?.post?.updatedAt;
+
+      setPost((prev) => (prev ? { ...prev, content: updatedContent, updatedAt: updatedAt ?? prev.updatedAt } : prev));
+      setIsEditing(false);
+    } catch (err) {
+      console.error("Error updating post:", err);
+      alert("Failed to update post");
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (!post) return;
+    if (!confirm("Delete this post? This can’t be undone.")) return;
+
+    try {
+      const client = getAuthenticatedClient();
+      await client.request(DELETE_POST_MUTATION, { postId });
+
+      router.push("/feed");
+    } catch (err) {
+      console.error("Error deleting post:", err);
+      alert("Failed to delete post");
+    } finally {
+      setMenuOpen(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="post-detail-page">
@@ -128,31 +232,56 @@ export default function PostDetailPage() {
   }
 
   return (
-    <div className="post-detail-page">
+    <div className="post-detail-page" onClick={() => setMenuOpen(false)}>
       {/* Header */}
-      <header className="post-header">
+      <header className="post-header" onClick={(e) => e.stopPropagation()}>
         <button onClick={() => router.back()} className="back-button" aria-label="Go back">
           <ArrowLeft size={24} strokeWidth={2} />
         </button>
+
         <h1 className="header-title">Post</h1>
-        <button className="more-button" aria-label="More options">
-          <MoreVertical size={24} strokeWidth={2} />
-        </button>
+
+        {isOwner ? (
+          <div className="menu-wrap">
+            <button
+              className="more-button"
+              aria-label="More options"
+              onClick={() => setMenuOpen((v) => !v)}
+              type="button"
+            >
+              <MoreVertical size={24} strokeWidth={2} />
+            </button>
+
+            {menuOpen && (
+              <div className="menu" role="menu">
+                <button className="menu-item" onClick={handleStartEdit} type="button">
+                  <Pencil size={16} /> Edit
+                </button>
+                <button className="menu-item danger" onClick={handleDeletePost} type="button">
+                  <Trash2 size={16} /> Delete
+                </button>
+                <button className="menu-item" onClick={() => setMenuOpen(false)} type="button">
+                  <X size={16} /> Close
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div style={{ width: 40 }} />
+        )}
       </header>
 
       {/* Content */}
-      <div className="post-content-wrapper">
+      <div className="post-content-wrapper" onClick={(e) => e.stopPropagation()}>
         {/* Author Info */}
         <div className="author-section">
           <Link href={`/profile/${post.author.id}`} className="author-link">
             <div className="author-avatar">
-              {post.author.profileImage ? (
-                <img src={post.author.profileImage} alt={post.author.username} />
-              ) : (
-                <div className="avatar-placeholder">
-                  {post.author.username.charAt(0).toUpperCase()}
-                </div>
-              )}
+              <img
+                src={imgSrc(post.author.profileImage)}
+                alt={post.author.username}
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="author-info">
               <h2 className="author-name">{post.author.username}</h2>
@@ -163,34 +292,47 @@ export default function PostDetailPage() {
 
         {/* Post Body */}
         <div className="post-body">
-          <p className="post-text">{post.content}</p>
-          {post.image && (
+          {isEditing ? (
+            <div className="edit-box">
+              <textarea
+                className="edit-textarea"
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                rows={4}
+              />
+              <div className="edit-actions">
+                <button className="edit-cancel" onClick={handleCancelEdit} type="button">
+                  Cancel
+                </button>
+                <button className="edit-save" onClick={handleSaveEdit} type="button">
+                  Save
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="post-text">{post.content}</p>
+          )}
+
+          {post.imageUrl && (
             <div className="post-image-container">
-              <img src={post.image} alt="Post content" className="post-image" />
+              <img src={imgSrc(post.imageUrl)} alt="Post image" />
             </div>
           )}
         </div>
 
         {/* Actions */}
         <div className="post-actions">
-          <button
-            className={`action-btn ${post.isLikedByUser ? "liked" : ""}`}
-            onClick={handleLike}
-          >
-            <Heart
-              size={22}
-              fill={post.isLikedByUser ? "#ef4444" : "none"}
-              strokeWidth={2}
-            />
+          <button className={`action-btn ${post.isLikedByUser ? "liked" : ""}`} onClick={handleLike}>
+            <Heart size={22} fill={post.isLikedByUser ? "#ef4444" : "none"} strokeWidth={2} />
             <span>{post.likesCount}</span>
           </button>
 
-          <button className="action-btn">
+          <button className="action-btn" type="button">
             <MessageCircle size={22} strokeWidth={2} />
             <span>{post.commentsCount}</span>
           </button>
 
-          <button className="action-btn">
+          <button className="action-btn" type="button">
             <Share2 size={22} strokeWidth={2} />
           </button>
         </div>
@@ -204,7 +346,7 @@ export default function PostDetailPage() {
             <div className="comment-input-wrapper">
               <div className="current-user-avatar">
                 {currentUser?.profileImage ? (
-                  <img src={currentUser.profileImage} alt={currentUser.username} />
+                  <img src={imgSrc(currentUser?.profileImage)} alt={currentUser?.username ?? "You"} />
                 ) : (
                   <div className="avatar-placeholder">
                     {currentUser?.username?.charAt(0).toUpperCase() || "U"}
@@ -221,11 +363,7 @@ export default function PostDetailPage() {
               />
             </div>
             {commentText.trim() && (
-              <button
-                type="submit"
-                className="submit-comment-btn"
-                disabled={submittingComment}
-              >
+              <button type="submit" className="submit-comment-btn" disabled={submittingComment}>
                 {submittingComment ? "Posting..." : "Post"}
               </button>
             )}
@@ -238,7 +376,7 @@ export default function PostDetailPage() {
                 <div key={comment.id} className="comment-item">
                   <Link href={`/profile/${comment.author.id}`} className="comment-avatar">
                     {comment.author.profileImage ? (
-                      <img src={comment.author.profileImage} alt={comment.author.username} />
+                      <img src={imgSrc(comment.author.profileImage)} alt={comment.author.username} />
                     ) : (
                       <div className="avatar-placeholder">
                         {comment.author.username.charAt(0).toUpperCase()}
@@ -265,7 +403,7 @@ export default function PostDetailPage() {
         </div>
       </div>
 
-    <style jsx>{`
+      <style jsx>{`
         .post-detail-page {
           width: 100%;
           min-height: 100vh;
@@ -283,7 +421,7 @@ export default function PostDetailPage() {
         }
 
         .error-state h1 {
-          font-family: 'Poppins', sans-serif;
+          font-family: "Poppins", sans-serif;
           font-size: 28px;
           color: #1f2937;
           margin-bottom: 10px;
@@ -296,7 +434,7 @@ export default function PostDetailPage() {
           color: white;
           border: none;
           border-radius: 8px;
-          font-family: 'Inter', sans-serif;
+          font-family: "Inter", sans-serif;
           font-size: 14px;
           font-weight: 600;
           cursor: pointer;
@@ -336,11 +474,56 @@ export default function PostDetailPage() {
         }
 
         .header-title {
-          font-family: 'Poppins', sans-serif;
+          font-family: "Poppins", sans-serif;
           font-size: 18px;
           font-weight: 700;
           color: #1f2937;
           margin: 0;
+        }
+
+        /* menu */
+        .menu-wrap {
+          position: relative;
+        }
+
+        .menu {
+          position: absolute;
+          right: 0;
+          top: 52px;
+          background: white;
+          border: 1px solid #e5e7eb;
+          box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15);
+          border-radius: 12px;
+          overflow: hidden;
+          min-width: 160px;
+          z-index: 50;
+        }
+
+        .menu-item {
+          width: 100%;
+          padding: 10px 12px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-family: "Inter", sans-serif;
+          font-size: 14px;
+          color: #111827;
+          text-align: left;
+        }
+
+        .menu-item:hover {
+          background: #f9fafb;
+        }
+
+        .menu-item.danger {
+          color: #ef4444;
+        }
+
+        .menu-item.danger:hover {
+          background: rgba(239, 68, 68, 0.08);
         }
 
         /* Content */
@@ -388,7 +571,7 @@ export default function PostDetailPage() {
           align-items: center;
           justify-content: center;
           color: white;
-          font-family: 'Poppins', sans-serif;
+          font-family: "Poppins", sans-serif;
           font-weight: 700;
           font-size: 20px;
         }
@@ -398,7 +581,7 @@ export default function PostDetailPage() {
         }
 
         .author-name {
-          font-family: 'Poppins', sans-serif;
+          font-family: "Poppins", sans-serif;
           font-size: 16px;
           font-weight: 600;
           color: #1f2937;
@@ -406,7 +589,7 @@ export default function PostDetailPage() {
         }
 
         .post-time {
-          font-family: 'Inter', sans-serif;
+          font-family: "Inter", sans-serif;
           font-size: 13px;
           color: #6b7280;
           margin: 0;
@@ -418,7 +601,7 @@ export default function PostDetailPage() {
         }
 
         .post-text {
-          font-family: 'Inter', sans-serif;
+          font-family: "Inter", sans-serif;
           font-size: 16px;
           line-height: 1.6;
           color: #1f2937;
@@ -432,11 +615,60 @@ export default function PostDetailPage() {
           margin-top: 16px;
         }
 
-        .post-image {
+        .post-image-container img {
           width: 100%;
           max-height: 500px;
           object-fit: cover;
           display: block;
+        }
+
+        /* Edit mode */
+        .edit-box {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .edit-textarea {
+          width: 100%;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          padding: 12px;
+          font-family: "Inter", sans-serif;
+          font-size: 14px;
+          resize: vertical;
+        }
+
+        .edit-textarea:focus {
+          outline: none;
+          border-color: #2b8761;
+        }
+
+        .edit-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+        }
+
+        .edit-cancel {
+          padding: 10px 14px;
+          border-radius: 10px;
+          border: 1px solid #e5e7eb;
+          background: white;
+          cursor: pointer;
+          font-family: "Inter", sans-serif;
+          font-weight: 600;
+        }
+
+        .edit-save {
+          padding: 10px 14px;
+          border-radius: 10px;
+          border: none;
+          background: #2b8761;
+          color: white;
+          cursor: pointer;
+          font-family: "Inter", sans-serif;
+          font-weight: 600;
         }
 
         /* Actions */
@@ -457,7 +689,7 @@ export default function PostDetailPage() {
           border: none;
           border-radius: 20px;
           cursor: pointer;
-          font-family: 'Inter', sans-serif;
+          font-family: "Inter", sans-serif;
           font-size: 14px;
           font-weight: 500;
           color: #6b7280;
@@ -483,7 +715,7 @@ export default function PostDetailPage() {
         }
 
         .comments-title {
-          font-family: 'Poppins', sans-serif;
+          font-family: "Poppins", sans-serif;
           font-size: 18px;
           font-weight: 700;
           color: #1f2937;
@@ -524,7 +756,7 @@ export default function PostDetailPage() {
           padding: 12px 16px;
           border: 1px solid #e5e7eb;
           border-radius: 24px;
-          font-family: 'Inter', sans-serif;
+          font-family: "Inter", sans-serif;
           font-size: 14px;
           color: #1f2937;
           transition: border-color 0.2s;
@@ -541,7 +773,7 @@ export default function PostDetailPage() {
           color: white;
           border: none;
           border-radius: 20px;
-          font-family: 'Inter', sans-serif;
+          font-family: "Inter", sans-serif;
           font-size: 14px;
           font-weight: 600;
           cursor: pointer;
@@ -564,7 +796,7 @@ export default function PostDetailPage() {
         }
 
         .no-comments {
-          font-family: 'Inter', sans-serif;
+          font-family: "Inter", sans-serif;
           font-size: 14px;
           color: #6b7280;
           text-align: center;
@@ -606,7 +838,7 @@ export default function PostDetailPage() {
         }
 
         .comment-author {
-          font-family: 'Poppins', sans-serif;
+          font-family: "Poppins", sans-serif;
           font-size: 14px;
           font-weight: 600;
           color: #1f2937;
@@ -618,13 +850,13 @@ export default function PostDetailPage() {
         }
 
         .comment-time {
-          font-family: 'Inter', sans-serif;
+          font-family: "Inter", sans-serif;
           font-size: 12px;
           color: #9ca3af;
         }
 
         .comment-text {
-          font-family: 'Inter', sans-serif;
+          font-family: "Inter", sans-serif;
           font-size: 14px;
           line-height: 1.5;
           color: #374151;

@@ -37,19 +37,17 @@ export function usePost(postId: string) {
 
     try {
       const client = getAuthenticatedClient();
-      const { post } = await client.request<{ post: Post }>(
-        GET_POST_BY_ID,
-        { postId }
-      );
 
-      setPost(post);
-      // Extract comments if they're included in the post
-      if (post.comments) {
-        setComments(post.comments);
-      }
+      const data = await client.request<{
+        post: Post;
+        comments: Comment[];
+      }>(GET_POST_BY_ID, { postId });
+
+      setPost(data.post);
+      setComments(data.comments ?? []);
     } catch (err) {
       console.error("Failed to load post:", err);
-      setError("Failed to load post");
+      setError(err instanceof Error ? err.message : "Failed to load post");
     } finally {
       setLoading(false);
     }
@@ -65,48 +63,53 @@ export function usePost(postId: string) {
   const likePost = async () => {
     if (!post) return;
 
-    // Store previous state for rollback
     const previousLikesCount = post.likesCount;
     const previousIsLiked = post.isLikedByUser;
 
     try {
-      // Optimistic update
+      // optimistic update
       setPost({
         ...post,
         isLikedByUser: !post.isLikedByUser,
-        likesCount: post.isLikedByUser 
-          ? post.likesCount - 1 
-          : post.likesCount + 1,
+        likesCount: post.isLikedByUser ? post.likesCount - 1 : post.likesCount + 1,
       });
 
       const client = getAuthenticatedClient();
-      const { likePost } = await client.request<{
+
+      const res = await client.request<{
         likePost: {
-          liked: boolean;
-          post: { id: string; likesCount: number; commentsCount: number };
+          success: boolean;
+          message: string;
+          post: { id: string; likesCount: number; commentsCount: number; isLikedByUser?: boolean };
         };
       }>(LIKE_POST_MUTATION, { postId });
 
-      // Update with server response
+      const serverPost = res.likePost.post;
+
+      // derive liked status from message (since backend doesn’t return liked boolean)
+      const likedNow = res.likePost.message === "Post liked";
+
       setPost((prev) =>
         prev
           ? {
               ...prev,
-              likesCount: likePost.post.likesCount,
-              isLikedByUser: likePost.liked,
+              likesCount: serverPost.likesCount,
+              commentsCount: serverPost.commentsCount,
+              isLikedByUser: likedNow,
             }
           : null
       );
     } catch (err) {
       console.error("Failed to like post:", err);
-      // Rollback on error
-      if (post) {
-        setPost({
-          ...post,
-          likesCount: previousLikesCount,
-          isLikedByUser: previousIsLiked,
-        });
-      }
+      setPost((prev) =>
+        prev
+          ? {
+              ...prev,
+              likesCount: previousLikesCount,
+              isLikedByUser: previousIsLiked,
+            }
+          : prev
+      );
       throw err;
     }
   };

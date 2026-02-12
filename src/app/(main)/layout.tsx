@@ -3,7 +3,9 @@
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
+// import { useParams } from "next/navigation";
 import FollowersList from "@/components/layout/FollowersList";
+import UsersDirectory from "@/components/users/UsersDirectory";
 import Header from "@/components/layout/Header";
 import PostCreateModal from "@/components/modals/PostCreateModal";
 import { useFeed } from "@/hooks/useFeed";
@@ -12,6 +14,8 @@ import { useAuth } from "@/context/AuthContext";
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isFeedRoute = pathname === "/feed" || pathname?.startsWith("/feed");
+  // const params = useParams();
+  // const userId = params.id as string;
 
   const { user } = useAuth();
 
@@ -44,7 +48,25 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
       {/* Right Followers Column */}
       <aside className="sidebar-right">
-        <FollowersList />
+          <UsersDirectory
+            query=""
+            currentUserId={user?.id}
+            limit={4}
+            seeMoreHref="/users"
+          />
+        <div>
+          <h2 className="text-xl font-bold mb-8">Your Followers</h2>
+          {/* <FollowersList /> */}
+          {user?.id ? (
+            <>
+              <FollowersList userId={user.id} mode="followers" />
+              <FollowersList userId={user.id} mode="following" />
+            </>
+          ) : (
+            <p>Please log in</p>
+          )}
+        </div>
+        
       </aside>
 
       {/* ✅ Global Create Post Modal (only meaningful on feed) */}

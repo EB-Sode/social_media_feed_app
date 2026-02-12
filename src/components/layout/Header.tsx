@@ -2,8 +2,9 @@
 
 import React from "react";
 import Link from "next/link";
-import { Home, Compass, User, Plus, Heart, Send } from "lucide-react";
+import { Home, Plus, Send } from "lucide-react";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 
 type HeaderProps = {
   onCreatePost?: () => void; // ✅ makes Plus clickable when provided (Feed page)
@@ -14,7 +15,6 @@ type HeaderProps = {
 
 export default function Header({
   onCreatePost,
-  onOpenLikes,
   onOpenMessages,
   profileHref = "/profile",
 }: HeaderProps) {
@@ -28,22 +28,17 @@ export default function Header({
     <header className="header">
       <div className="header-content">
         <div className="header-left">
-          <h1 className="app-name">Social</h1>
+            <Image
+              src="/RB.png"
+              alt="App logo"
+              width={60}
+              height={60}
+              priority
+            />
         </div>
 
         <div className="header-actions">
-          {/* Likes */}
-          <button
-            className="header-btn"
-            aria-label="Liked posts"
-            onClick={onOpenLikes}
-            type="button"
-            disabled={!onOpenLikes}
-            title={!onOpenLikes ? "Coming soon" : "Liked posts"}
-          >
-            <Heart size={24} />
-          </button>
-
+        
           {/* Messages */}
           <button
             className="header-btn"
@@ -77,14 +72,6 @@ export default function Header({
             >
               <Home size={22} strokeWidth={2} />
             </Link>
-
-            {/* <Link
-              href={profileHref}
-              className={`nav-link ${isActive(profileHref) ? "active" : ""}`}
-              aria-label="Profile"
-            >
-              <User size={22} strokeWidth={2} />
-            </Link> */}
           </nav>
         </div>
       </div>
@@ -92,7 +79,7 @@ export default function Header({
       <style jsx>{`
         .header {
           width: 100%;
-          background: white;
+          background: #70d686;
           border-bottom: 1px solid rgba(0, 0, 0, 0.1);
           position: sticky;
           top: 0;
@@ -100,7 +87,7 @@ export default function Header({
         }
 
         .header-content {
-          padding: 16px 24px;
+          padding: 2px 40px;
           display: flex;
           align-items: center;
           justify-content: space-between;

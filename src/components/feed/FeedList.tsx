@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import PostCard from "./PostCard";
 import PostCreateModal from "@/components/modals/PostCreateModal";
 import { Plus } from "lucide-react";
@@ -16,9 +17,12 @@ interface FeedListProps {
 }
 
 export default function FeedList({ currentUser }: FeedListProps) {
-  const { posts, loading, error, createPost, likePost } = useFeed();
+  const router = useRouter();
+
+  // ✅ make sure your hook exposes deletePost + updatePost (or editPost)
+  const { posts, loading, error, createPost, likePost, deletePost } = useFeed();
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  
 
   const handleCreatePost = async (content: string, imageFile?: File) => {
     await createPost(content, imageFile);
@@ -32,25 +36,29 @@ export default function FeedList({ currentUser }: FeedListProps) {
     }
   };
 
+  const handleDeletePost = async (postId: string) => {
+    try {
+      await deletePost(postId);
+      // optionally show toast
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+    }
+  };
+
+  const handleEditPost = (postId: string) => {
+    // simplest: route to an edit page
+    router.push(`/post/${postId}/edit`);
+
+    // OR open an edit modal you already have:
+    // setEditTarget(postId) ...
+  };
+
   if (loading) {
     return (
       <div className="feed-wrapper">
         <div className="loading-state">
           <p>Loading feed...</p>
         </div>
-        <style jsx>{`
-          .feed-wrapper {
-            width: 100%;
-            min-height: 100vh;
-          }
-          .loading-state {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 50vh;
-            color: #6b7280;
-          }
-        `}</style>
       </div>
     );
   }
@@ -61,19 +69,6 @@ export default function FeedList({ currentUser }: FeedListProps) {
         <div className="error-state">
           <p>{error}</p>
         </div>
-        <style jsx>{`
-          .feed-wrapper {
-            width: 100%;
-            min-height: 100vh;
-          }
-          .error-state {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 50vh;
-            color: #ef4444;
-          }
-        `}</style>
       </div>
     );
   }
@@ -100,57 +95,15 @@ export default function FeedList({ currentUser }: FeedListProps) {
                 <PostCard
                   key={post.id}
                   post={uiPost}
+                  currentUserId={currentUser?.id}
                   onLike={handleLikePost}
+                  onDelete={handleDeletePost}
+                  onEdit={handleEditPost}
                 />
               );
             })
           )}
         </div>
-
-        <style jsx>{`
-          .feed-wrapper {
-            width: 100%;
-            min-height: 100vh;
-          }
-
-          .posts-container {
-            padding: 20px 0;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-            max-width: 500px;
-            margin: 0 auto;
-          }
-
-          .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 50vh;
-            color: #6b7280;
-            text-align: center;
-            gap: 16px;
-          }
-
-          .create-first-post-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
-            background: #2b8761;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-          }
-
-          .create-first-post-btn:hover {
-            background: #1f6949;
-          }
-        `}</style>
       </div>
 
       {currentUser && (

@@ -25,7 +25,7 @@ export function mapPostToUI(post: Post): UIPost {
   return {
     id: post.id,
     content: post.content,
-    image: post.image,
+    image: post.imageUrl,
     authorId: post.author?.id ?? "unknown",
     authorName: post.author?.username ?? "Unknown User",
     authorAvatar: post.author?.profileImage ?? "",
