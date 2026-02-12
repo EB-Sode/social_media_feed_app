@@ -29,7 +29,7 @@ const notificationCount = isAuthenticated && !notificationsLoading ? unreadCount
   const isActive = (path: string) => pathname === path;
 
   const profileLink = user?.id ? `/profile/${user.id}` : "/login";
-  const postlink = isAuthenticated ? `/post/${user?.id}` : "/login";
+  // const postlink = isAuthenticated ? `/post/${user?.id}` : "/login";
 
   const handleEditProfile = () => {
     setSettingsOpen(false);

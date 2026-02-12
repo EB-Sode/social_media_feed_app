@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { getAuthenticatedClient } from "@/lib/graphql";
 import {
-  CREATE_POST_MUTATION,
   GET_POST_BY_ID,
   LIKE_POST_MUTATION,
   CREATE_COMMENT_MUTATION,

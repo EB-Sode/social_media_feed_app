@@ -16,7 +16,7 @@ type HeaderProps = {
 export default function Header({
   onCreatePost,
   onOpenMessages,
-  profileHref = "/profile",
+  // profileHref = "/profile",
 }: HeaderProps) {
   const pathname = usePathname();
 

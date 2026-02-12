@@ -16,8 +16,8 @@ type ProfileSidebarProps = {
 };
 
 export default function ProfileSidebar({
-  firstPostId,
-  hasPosts = true,
+  // firstPostId,
+  // hasPosts = true,
   onOpenSettings,
   homeHref = "/feed",
 }: ProfileSidebarProps) {
