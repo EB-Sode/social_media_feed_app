@@ -207,6 +207,7 @@ export default function SignupPage() {
           justify-content: center;
           background: #808080;
           padding: 20px;
+          width: 100%;
         }
 
         .auth-card {
