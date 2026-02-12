@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Mail, CheckCircle } from "lucide-react";
 import { forgotPassword, validateEmail, formatAuthError } from "@/lib/auth-utils";
@@ -49,32 +49,44 @@ export default function ForgotPasswordPage() {
     }
   };
 
+  // Shared Tailwind styles
+  const pageWrap = "min-h-screen flex items-center justify-center bg-[#808080] p-5";
+  const card =
+    "w-full max-w-[420px] bg-[#b1f5bf] rounded-2xl px-10 py-12 shadow-[0_10px_40px_rgba(0,0,0,0.15)] relative max-[480px]:px-6 max-[480px]:py-8";
+  const title =
+    'font-["Poppins"] text-[32px] font-bold text-[#1f2937] text-center mb-4 max-[480px]:text-[28px]';
+
   if (success) {
     return (
-      <div className="auth-container">
-        <div className="auth-card">
-          <div className="success-icon-wrapper">
-            <CheckCircle size={64} strokeWidth={2} className="success-icon" />
+      <div className={pageWrap}>
+        <div className={card}>
+          <div className="flex justify-center mb-6">
+            <CheckCircle size={64} strokeWidth={2} className="text-[#2B8761]" />
           </div>
 
-          <h1 className="auth-title">Check Your Email</h1>
+          <h1 className={title}>Check Your Email</h1>
 
-          <p className="success-message">
-            We've sent a password reset link to <strong>{email}</strong>
+          <p className="font-['Inter'] text-[15px] text-[#1f2937] text-center mb-4 leading-relaxed">
+            We've sent a password reset link to{" "}
+            <strong className="font-semibold text-[#2B8761] break-all">{email}</strong>
           </p>
 
-          <p className="success-submessage">
+          <p className="font-['Inter'] text-[14px] text-[#6b7280] text-center mb-8 leading-relaxed">
             Click the link in the email to reset your password. If you don't see
             the email, check your spam folder.
           </p>
 
-          <div className="success-actions">
-            <Link href="/login" className="back-to-login-btn">
+          <div className="flex flex-col gap-3">
+            <Link
+              href="/login"
+              className="w-full rounded-xl bg-[#2B8761] text-white py-3 font-semibold text-center hover:bg-[#1F6949] transition shadow-none hover:shadow-[0_6px_20px_rgba(43,135,97,0.3)] hover:-translate-y-[2px] transform"
+            >
               Back to Login
             </Link>
 
             <button
-              className="resend-btn"
+              type="button"
+              className="w-full rounded-xl bg-white text-[#2B8761] border border-[#2B8761] py-3 font-semibold hover:bg-[rgba(43,135,97,0.05)] transition"
               onClick={() => {
                 setSuccess(false);
                 setEmail("");
@@ -83,370 +95,82 @@ export default function ForgotPasswordPage() {
               Try Another Email
             </button>
           </div>
-
-          <style jsx>{`
-            .success-icon-wrapper {
-              display: flex;
-              justify-content: center;
-              margin-bottom: 24px;
-            }
-
-            .success-icon {
-              color: #2b8761;
-            }
-
-            .success-message {
-              font-family: "Inter", sans-serif;
-              font-size: 15px;
-              color: #1f2937;
-              text-align: center;
-              margin: 0 0 16px 0;
-              line-height: 1.6;
-            }
-
-            .success-message strong {
-              font-weight: 600;
-              color: #2b8761;
-            }
-
-            .success-submessage {
-              font-family: "Inter", sans-serif;
-              font-size: 14px;
-              color: #6b7280;
-              text-align: center;
-              margin: 0 0 32px 0;
-              line-height: 1.6;
-            }
-
-            .success-actions {
-              display: flex;
-              flex-direction: column;
-              gap: 12px;
-            }
-
-            .back-to-login-btn {
-              width: 100%;
-              padding: 14px 24px;
-              background: #2b8761;
-              color: white;
-              border: none;
-              border-radius: 12px;
-              font-family: "Poppins", sans-serif;
-              font-size: 16px;
-              font-weight: 600;
-              cursor: pointer;
-              transition: all 0.3s ease;
-              text-align: center;
-              text-decoration: none;
-              display: block;
-            }
-
-            .back-to-login-btn:hover {
-              background: #1f6949;
-              transform: translateY(-2px);
-              box-shadow: 0 6px 20px rgba(43, 135, 97, 0.3);
-            }
-
-            .resend-btn {
-              width: 100%;
-              padding: 14px 24px;
-              background: white;
-              color: #2b8761;
-              border: 1px solid #2b8761;
-              border-radius: 12px;
-              font-family: "Inter", sans-serif;
-              font-size: 15px;
-              font-weight: 600;
-              cursor: pointer;
-              transition: all 0.2s ease;
-            }
-
-            .resend-btn:hover {
-              background: rgba(43, 135, 97, 0.05);
-            }
-          `}</style>
         </div>
-
-        <style jsx>{`
-          .auth-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #808080;
-            padding: 20px;
-          }
-
-          .auth-card {
-            width: 100%;
-            max-width: 420px;
-            background: #b1f5bf;
-            border-radius: 16px;
-            padding: 48px 40px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-          }
-
-          .auth-title {
-            font-family: "Poppins", sans-serif;
-            font-size: 32px;
-            font-weight: 700;
-            color: #1f2937;
-            text-align: center;
-            margin: 0 0 24px 0;
-          }
-
-          @media (max-width: 480px) {
-            .auth-card {
-              padding: 32px 24px;
-            }
-
-            .auth-title {
-              font-size: 28px;
-            }
-          }
-        `}</style>
       </div>
     );
   }
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
+    <div className={pageWrap}>
+      <div className={card}>
         {/* Back Button */}
-        <Link href="/login" className="back-button">
+        <Link
+          href="/login"
+          className="inline-flex items-center gap-2 text-[#1f2937] font-['Inter'] text-sm font-medium mb-6 px-3 py-2 rounded-lg hover:bg-[rgba(31,41,55,0.1)] transition"
+        >
           <ArrowLeft size={20} strokeWidth={2} />
           <span>Back to Login</span>
         </Link>
 
         {/* Icon */}
-        <div className="icon-wrapper">
-          <Mail size={48} strokeWidth={2} className="mail-icon" />
+        <div className="flex justify-center mb-5">
+          <Mail size={48} strokeWidth={2} className="text-[#2B8761]" />
         </div>
 
-        <h1 className="auth-title">Forgot Password?</h1>
+        <h1 className={title}>Forgot Password?</h1>
 
-        <p className="subtitle">
+        <p className="font-['Inter'] text-[15px] text-[#6b7280] text-center mb-8 leading-relaxed">
           No worries! Enter your email address and we'll send you a link to reset
           your password.
         </p>
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          {error && <div className="error-message">{error}</div>}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          {error && (
+            <div className="bg-red-100 text-red-800 border border-red-200 px-4 py-3 rounded-lg font-['Inter'] text-sm font-medium">
+              {error}
+            </div>
+          )}
 
           {/* Email */}
-          <div className="form-group">
-            <label htmlFor="email" className="form-label">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="email" className="font-['Inter'] text-sm font-medium text-[#1f2937]">
               Email Address
             </label>
-            <input
-              id="email"
-              type="email"
-              className="form-input"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoFocus
-            />
+
+            <div className="flex items-center gap-2 rounded-xl bg-white/70 border border-black/10 px-3 py-3 focus-within:border-[#2B8761] focus-within:ring-4 focus-within:ring-[rgba(43,135,97,0.1)] transition">
+              <Mail size={18} className="text-[#1f2937]/60" />
+              <input
+                id="email"
+                type="email"
+                className="w-full bg-transparent outline-none font-['Inter'] text-[15px] text-[#1f2937] placeholder:text-gray-400"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoFocus
+                autoComplete="email"
+              />
+            </div>
           </div>
 
           {/* Submit Button */}
-          <button type="submit" className="submit-btn" disabled={loading}>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-[#2B8761] text-white py-3 font-semibold font-['Poppins'] hover:bg-[#1F6949] transition disabled:opacity-60 disabled:cursor-not-allowed shadow-none hover:shadow-[0_6px_20px_rgba(43,135,97,0.3)] hover:-translate-y-[2px] transform"
+          >
             {loading ? "Sending..." : "Send Reset Link"}
           </button>
 
           {/* Login Link */}
-          <p className="switch-auth">
+          <p className="text-center font-['Inter'] text-sm text-[#1f2937] mt-2">
             Remember your password?{" "}
-            <Link href="/login" className="switch-link">
+            <Link href="/login" className="text-[#2B8761] font-semibold hover:underline">
               Login
             </Link>
           </p>
         </form>
       </div>
-
-      <style jsx>{`
-        .auth-container {
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #808080;
-          padding: 20px;
-        }
-
-        .auth-card {
-          width: 100%;
-          max-width: 420px;
-          background: #b1f5bf;
-          border-radius: 16px;
-          padding: 48px 40px;
-          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-          position: relative;
-        }
-
-        .back-button {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          color: #1f2937;
-          text-decoration: none;
-          font-family: "Inter", sans-serif;
-          font-size: 14px;
-          font-weight: 500;
-          margin-bottom: 24px;
-          padding: 8px 12px;
-          border-radius: 8px;
-          transition: all 0.2s ease;
-        }
-
-        .back-button:hover {
-          background: rgba(31, 41, 55, 0.1);
-        }
-
-        .back-button :global(svg) {
-          color: currentColor;
-        }
-
-        .icon-wrapper {
-          display: flex;
-          justify-content: center;
-          margin-bottom: 20px;
-        }
-
-        .mail-icon {
-          color: #2b8761;
-        }
-
-        .auth-title {
-          font-family: "Poppins", sans-serif;
-          font-size: 32px;
-          font-weight: 700;
-          color: #1f2937;
-          text-align: center;
-          margin: 0 0 16px 0;
-        }
-
-        .subtitle {
-          font-family: "Inter", sans-serif;
-          font-size: 15px;
-          color: #6b7280;
-          text-align: center;
-          margin: 0 0 32px 0;
-          line-height: 1.6;
-        }
-
-        .auth-form {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-
-        .error-message {
-          background: #fee2e2;
-          color: #991b1b;
-          padding: 12px 16px;
-          border-radius: 8px;
-          font-family: "Inter", sans-serif;
-          font-size: 14px;
-          font-weight: 500;
-          border: 1px solid #fecaca;
-        }
-
-        .form-group {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .form-label {
-          font-family: "Inter", sans-serif;
-          font-size: 14px;
-          font-weight: 500;
-          color: #1f2937;
-        }
-
-        .form-input {
-          width: 100%;
-          padding: 14px 16px;
-          background: white;
-          border: 1px solid rgba(0, 0, 0, 0.1);
-          border-radius: 8px;
-          font-family: "Inter", sans-serif;
-          font-size: 15px;
-          color: #1f2937;
-          transition: all 0.2s ease;
-        }
-
-        .form-input::placeholder {
-          color: #9ca3af;
-        }
-
-        .form-input:focus {
-          outline: none;
-          border-color: #2b8761;
-          box-shadow: 0 0 0 3px rgba(43, 135, 97, 0.1);
-        }
-
-        .submit-btn {
-          width: 100%;
-          padding: 14px 24px;
-          background: #2b8761;
-          color: white;
-          border: none;
-          border-radius: 12px;
-          font-family: "Poppins", sans-serif;
-          font-size: 16px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          margin-top: 8px;
-        }
-
-        .submit-btn:hover:not(:disabled) {
-          background: #1f6949;
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(43, 135, 97, 0.3);
-        }
-
-        .submit-btn:active:not(:disabled) {
-          transform: translateY(0);
-        }
-
-        .submit-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .switch-auth {
-          font-family: "Inter", sans-serif;
-          font-size: 14px;
-          color: #1f2937;
-          text-align: center;
-          margin: 8px 0 0 0;
-        }
-
-        .switch-link {
-          color: #2b8761;
-          text-decoration: none;
-          font-weight: 600;
-        }
-
-        .switch-link:hover {
-          text-decoration: underline;
-        }
-
-        /* Responsive */
-        @media (max-width: 480px) {
-          .auth-card {
-            padding: 32px 24px;
-          }
-
-          .auth-title {
-            font-size: 28px;
-          }
-        }
-      `}</style>
     </div>
   );
 }

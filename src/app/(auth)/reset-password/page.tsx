@@ -10,6 +10,7 @@ import { resetPassword, validatePassword, formatAuthError } from "@/lib/auth-uti
 export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
   const [token, setToken] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -37,7 +38,6 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    // Validation
     if (!password || !confirmPassword) {
       setError("Please fill in all fields.");
       return;
@@ -61,10 +61,7 @@ export default function ResetPasswordPage() {
 
       if (response.success) {
         setSuccess(true);
-        // Redirect to login after 3 seconds
-        setTimeout(() => {
-          router.push("/login");
-        }, 3000);
+        setTimeout(() => router.push("/login"), 3000);
       } else {
         setError(response.message || "Failed to reset password.");
       }
@@ -80,406 +77,138 @@ export default function ResetPasswordPage() {
     }
   };
 
+  const pageWrap =
+    "min-h-screen flex items-center justify-center bg-[#808080] p-5";
+
+  const card =
+    "w-full max-w-[420px] bg-[#b1f5bf] rounded-2xl px-10 py-12 shadow-[0_10px_40px_rgba(0,0,0,0.15)] max-[480px]:px-6 max-[480px]:py-8";
+
+  const title =
+    'font-["Poppins"] text-[32px] font-bold text-[#1f2937] text-center mb-4 max-[480px]:text-[28px]';
+
   if (success) {
     return (
-      <div className="auth-container">
-        <div className="auth-card">
-          <div className="success-icon-wrapper">
-            <CheckCircle size={64} strokeWidth={2} className="success-icon" />
+      <div className={pageWrap}>
+        <div className={card}>
+          <div className="flex justify-center mb-6">
+            <CheckCircle size={64} strokeWidth={2} className="text-[#2B8761]" />
           </div>
 
-          <h1 className="auth-title">Password Reset!</h1>
+          <h1 className={title}>Password Reset!</h1>
 
-          <p className="success-message">
+          <p className="font-['Inter'] text-[15px] text-[#1f2937] text-center mb-4 leading-relaxed">
             Your password has been successfully reset. You can now log in with
             your new password.
           </p>
 
-          <p className="redirect-message">
+          <p className="font-['Inter'] text-[13px] text-[#6b7280] text-center mb-6">
             Redirecting to login page in 3 seconds...
           </p>
 
-          <Link href="/login" className="back-to-login-btn">
+          <Link
+            href="/login"
+            className="w-full block text-center rounded-xl bg-[#2B8761] text-white py-3 font-semibold hover:bg-[#1F6949] transition shadow-none hover:shadow-[0_6px_20px_rgba(43,135,97,0.3)] hover:-translate-y-[2px] transform"
+          >
             Go to Login Now
           </Link>
-
-          <style jsx>{`
-            .success-icon-wrapper {
-              display: flex;
-              justify-content: center;
-              margin-bottom: 24px;
-            }
-
-            .success-icon {
-              color: #2b8761;
-            }
-
-            .success-message {
-              font-family: "Inter", sans-serif;
-              font-size: 15px;
-              color: #1f2937;
-              text-align: center;
-              margin: 0 0 16px 0;
-              line-height: 1.6;
-            }
-
-            .redirect-message {
-              font-family: "Inter", sans-serif;
-              font-size: 13px;
-              color: #6b7280;
-              text-align: center;
-              margin: 0 0 24px 0;
-            }
-
-            .back-to-login-btn {
-              width: 100%;
-              padding: 14px 24px;
-              background: #2b8761;
-              color: white;
-              border: none;
-              border-radius: 12px;
-              font-family: "Poppins", sans-serif;
-              font-size: 16px;
-              font-weight: 600;
-              cursor: pointer;
-              transition: all 0.3s ease;
-              text-align: center;
-              text-decoration: none;
-              display: block;
-            }
-
-            .back-to-login-btn:hover {
-              background: #1f6949;
-              transform: translateY(-2px);
-              box-shadow: 0 6px 20px rgba(43, 135, 97, 0.3);
-            }
-          `}</style>
         </div>
-
-        <style jsx>{`
-          .auth-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #808080;
-            padding: 20px;
-          }
-
-          .auth-card {
-            width: 100%;
-            max-width: 420px;
-            background: #b1f5bf;
-            border-radius: 16px;
-            padding: 48px 40px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-          }
-
-          .auth-title {
-            font-family: "Poppins", sans-serif;
-            font-size: 32px;
-            font-weight: 700;
-            color: #1f2937;
-            text-align: center;
-            margin: 0 0 24px 0;
-          }
-        `}</style>
       </div>
     );
   }
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        {/* Icon */}
-        <div className="icon-wrapper">
-          <Lock size={48} strokeWidth={2} className="lock-icon" />
+    <div className={pageWrap}>
+      <div className={card}>
+        <div className="flex justify-center mb-5">
+          <Lock size={48} strokeWidth={2} className="text-[#2B8761]" />
         </div>
 
-        <h1 className="auth-title">Reset Password</h1>
+        <h1 className={title}>Reset Password</h1>
 
-        <p className="subtitle">
-          Please enter your new password below. Make sure it's at least 8
-          characters long.
+        <p className="font-['Inter'] text-[15px] text-[#6b7280] text-center mb-8 leading-relaxed">
+          Please enter your new password below. Make sure it's at least 8 characters long.
         </p>
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          {error && <div className="error-message">{error}</div>}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          {error && (
+            <div className="bg-red-100 text-red-800 border border-red-200 px-4 py-3 rounded-lg font-['Inter'] text-sm font-medium">
+              {error}
+            </div>
+          )}
 
           {/* New Password */}
-          <div className="form-group">
-            <label htmlFor="password" className="form-label">
+          <div className="flex flex-col gap-2">
+            <label className="font-['Inter'] text-sm font-medium text-[#1f2937]">
               New Password
             </label>
-            <div className="password-input-wrapper">
+
+            <div className="relative">
               <input
-                id="password"
                 type={showPassword ? "text" : "password"}
-                className="form-input"
+                className="w-full px-4 py-3 rounded-xl border border-black/10 bg-white font-['Inter'] text-[15px] focus:outline-none focus:border-[#2B8761] focus:ring-4 focus:ring-[rgba(43,135,97,0.1)] transition"
                 placeholder="Enter new password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoFocus
               />
+
               <button
                 type="button"
-                className="password-toggle"
                 onClick={() => setShowPassword(!showPassword)}
-                aria-label="Toggle password visibility"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#1f2937] transition"
               >
-                {showPassword ? (
-                  <EyeOff size={20} strokeWidth={2} />
-                ) : (
-                  <Eye size={20} strokeWidth={2} />
-                )}
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            <p className="form-hint">must contain 8 char.</p>
+
+            <p className="text-xs text-[#2B8761] font-['Inter']">
+              Must contain at least 8 characters.
+            </p>
           </div>
 
           {/* Confirm Password */}
-          <div className="form-group">
-            <label htmlFor="confirmPassword" className="form-label">
+          <div className="flex flex-col gap-2">
+            <label className="font-['Inter'] text-sm font-medium text-[#1f2937]">
               Confirm New Password
             </label>
-            <div className="password-input-wrapper">
+
+            <div className="relative">
               <input
-                id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
-                className="form-input"
+                className="w-full px-4 py-3 rounded-xl border border-black/10 bg-white font-['Inter'] text-[15px] focus:outline-none focus:border-[#2B8761] focus:ring-4 focus:ring-[rgba(43,135,97,0.1)] transition"
                 placeholder="Confirm new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
+
               <button
                 type="button"
-                className="password-toggle"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                aria-label="Toggle password visibility"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#1f2937] transition"
               >
-                {showConfirmPassword ? (
-                  <EyeOff size={20} strokeWidth={2} />
-                ) : (
-                  <Eye size={20} strokeWidth={2} />
-                )}
+                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
           </div>
 
-          {/* Submit Button */}
-          <button 
-            type="submit" 
-            className="submit-btn" 
+          <button
+            type="submit"
             disabled={loading || !token}
+            className="w-full rounded-xl bg-[#2B8761] text-white py-3 font-semibold font-['Poppins'] hover:bg-[#1F6949] transition disabled:opacity-60 disabled:cursor-not-allowed shadow-none hover:shadow-[0_6px_20px_rgba(43,135,97,0.3)] hover:-translate-y-[2px] transform"
           >
             {loading ? "Resetting..." : "Reset Password"}
           </button>
 
-          {/* Login Link */}
-          <p className="switch-auth">
+          <p className="text-center font-['Inter'] text-sm text-[#1f2937] mt-2">
             Remember your password?{" "}
-            <Link href="/login" className="switch-link">
+            <Link href="/login" className="text-[#2B8761] font-semibold hover:underline">
               Login
             </Link>
           </p>
         </form>
       </div>
-
-      <style jsx>{`
-        .auth-container {
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #808080;
-          padding: 20px;
-        }
-
-        .auth-card {
-          width: 100%;
-          max-width: 420px;
-          background: #b1f5bf;
-          border-radius: 16px;
-          padding: 48px 40px;
-          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .icon-wrapper {
-          display: flex;
-          justify-content: center;
-          margin-bottom: 20px;
-        }
-
-        .lock-icon {
-          color: #2b8761;
-        }
-
-        .auth-title {
-          font-family: "Poppins", sans-serif;
-          font-size: 32px;
-          font-weight: 700;
-          color: #1f2937;
-          text-align: center;
-          margin: 0 0 16px 0;
-        }
-
-        .subtitle {
-          font-family: "Inter", sans-serif;
-          font-size: 15px;
-          color: #6b7280;
-          text-align: center;
-          margin: 0 0 32px 0;
-          line-height: 1.6;
-        }
-
-        .auth-form {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-
-        .error-message {
-          background: #fee2e2;
-          color: #991b1b;
-          padding: 12px 16px;
-          border-radius: 8px;
-          font-family: "Inter", sans-serif;
-          font-size: 14px;
-          font-weight: 500;
-          border: 1px solid #fecaca;
-        }
-
-        .form-group {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .form-label {
-          font-family: "Inter", sans-serif;
-          font-size: 14px;
-          font-weight: 500;
-          color: #1f2937;
-        }
-
-        .form-input {
-          width: 100%;
-          padding: 14px 16px;
-          background: white;
-          border: 1px solid rgba(0, 0, 0, 0.1);
-          border-radius: 8px;
-          font-family: "Inter", sans-serif;
-          font-size: 15px;
-          color: #1f2937;
-          transition: all 0.2s ease;
-        }
-
-        .form-input::placeholder {
-          color: #9ca3af;
-        }
-
-        .form-input:focus {
-          outline: none;
-          border-color: #2b8761;
-          box-shadow: 0 0 0 3px rgba(43, 135, 97, 0.1);
-        }
-
-        .password-input-wrapper {
-          position: relative;
-        }
-
-        .password-toggle {
-          position: absolute;
-          right: 14px;
-          top: 50%;
-          transform: translateY(-50%);
-          background: transparent;
-          border: none;
-          color: #6b7280;
-          cursor: pointer;
-          padding: 4px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: color 0.2s ease;
-        }
-
-        .password-toggle:hover {
-          color: #1f2937;
-        }
-
-        .password-toggle :global(svg) {
-          color: currentColor;
-        }
-
-        .form-hint {
-          font-family: "Inter", sans-serif;
-          font-size: 12px;
-          color: #2b8761;
-          margin: 0;
-        }
-
-        .submit-btn {
-          width: 100%;
-          padding: 14px 24px;
-          background: #2b8761;
-          color: white;
-          border: none;
-          border-radius: 12px;
-          font-family: "Poppins", sans-serif;
-          font-size: 16px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          margin-top: 8px;
-        }
-
-        .submit-btn:hover:not(:disabled) {
-          background: #1f6949;
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(43, 135, 97, 0.3);
-        }
-
-        .submit-btn:active:not(:disabled) {
-          transform: translateY(0);
-        }
-
-        .submit-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .switch-auth {
-          font-family: "Inter", sans-serif;
-          font-size: 14px;
-          color: #1f2937;
-          text-align: center;
-          margin: 8px 0 0 0;
-        }
-
-        .switch-link {
-          color: #2b8761;
-          text-decoration: none;
-          font-weight: 600;
-        }
-
-        .switch-link:hover {
-          text-decoration: underline;
-        }
-
-        /* Responsive */
-        @media (max-width: 480px) {
-          .auth-card {
-            padding: 32px 24px;
-          }
-
-          .auth-title {
-            font-size: 28px;
-          }
-        }
-      `}</style>
     </div>
   );
 }
