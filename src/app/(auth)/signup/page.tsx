@@ -205,7 +205,7 @@ export default function SignupPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #808080;
+          background: #b1f5bf;
           padding: 20px;
           width: 100%;
         }
