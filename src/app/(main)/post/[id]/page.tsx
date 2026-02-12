@@ -6,7 +6,6 @@ import { useParams, useRouter } from "next/navigation";
 import { usePost } from "@/hooks/usePost";
 import { ArrowLeft, Heart, Send } from "lucide-react";
 import Link from "next/link";
-import { resolveMediaUrl } from "@/lib/media";
 
 export default function PostPage() {
   const params = useParams();
@@ -141,9 +140,9 @@ export default function PostPage() {
         )}
 
         {/* Image */}
-          {post.image && (
+          {post.imageUrl && (
             <div className="post-image-container">
-              <img src={post.image} alt="Post image" />
+              <img src={post.imageUrl} alt="Post image" />
             </div>
           )}
         {/* Actions */}
