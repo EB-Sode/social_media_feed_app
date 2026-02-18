@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { warmupBackend } from "@/lib/warmupBacked";
 
 export default function LoginPage() {
   const { login, loading, error, clearError } = useAuth();
@@ -12,6 +13,10 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState("");
+
+  useEffect(() => {
+    warmupBackend(process.env.NEXT_PUBLIC_API_URL!);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
