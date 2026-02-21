@@ -1,5 +1,5 @@
 // src/lib/graphql.ts
-import { GraphQLClient, gql } from "graphql-request";
+import { GraphQLClient } from "graphql-request";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -91,13 +91,21 @@ export const authClient = () => getAuthenticatedClient();
 
 export const graphqlClient = publicClient;
 
-export const ME_QUERY = gql`
+export const ME_QUERY = `
   query Me {
     me {
       id
       username
       email
       bio
+      location
+      profileImage
+      coverImage
+      createdAt
+      followersCount
+      followingCount
+      postsCount
     }
   }
 `;
+

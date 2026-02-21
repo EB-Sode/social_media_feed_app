@@ -41,6 +41,7 @@ export function useFeed(options?: { autoFetch?: boolean }) {
   }, [fetchFeed, options?.autoFetch]);
 
 
+
   /** Create a new post */
   const createPost = async (content?: string, imageFile?: File) => {
   if (!content && !imageFile) {

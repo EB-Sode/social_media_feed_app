@@ -49,7 +49,7 @@ export default function OnboardingPage() {
   );
 
   useEffect(() => {
-    warmupBackend(process.env.NEXT_PUBLIC_API_URL!);
+    warmupBackend(process.env.NEXT_PUBLIC_BACKEND_BASE!);
     }, []);
 
 

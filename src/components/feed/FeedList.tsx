@@ -16,6 +16,7 @@ interface FeedListProps {
   };
 }
 
+
 export default function FeedList({ currentUser }: FeedListProps) {
   const router = useRouter();
 

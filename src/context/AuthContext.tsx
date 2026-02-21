@@ -41,6 +41,7 @@ interface AuthContextType {
   signup: (variables: SignupVariables) => Promise<void>;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshMe: () => Promise<void>;
   refreshAccessToken: () => Promise<void>;
   clearError: () => void;
 }
@@ -135,6 +136,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw err;
     }
   };
+
+  const refreshMe = async () => {
+    try {
+      const token = getAccessToken();
+      if (!token) return;
+
+      const client = getAuthenticatedClient();
+      const data = await client.request<{ me: User }>(ME_QUERY);
+      setUser(data.me);
+    } catch (err) {
+      console.error("refreshMe failed:", err);
+      // optional: if you want to hard logout on auth failure:
+      // hardLogout();
+    }
+
+  };
+
 
   // ✅ Single initAuth effect (REMOVED the duplicate)
   useEffect(() => {
@@ -290,6 +308,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       refreshAccessToken,
+      refreshMe,
       clearError,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps

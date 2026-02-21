@@ -239,7 +239,7 @@ export default function PostDetailPage() {
           <ArrowLeft size={24} strokeWidth={2} />
         </button>
 
-        <h1 className="header-title">Post</h1>
+        <h1 className="header-title">Posters</h1>
 
         {isOwner ? (
           <div className="menu-wrap">
@@ -274,18 +274,22 @@ export default function PostDetailPage() {
       {/* Content */}
       <div className="post-content-wrapper" onClick={(e) => e.stopPropagation()}>
         {/* Author Info */}
-        <div className="author-section">
+       <div className="author-section">
           <Link href={`/profile/${post.author.id}`} className="author-link">
             <div className="author-avatar">
-              <img
-                src={imgSrc(post.author.profileImage)}
+             <img
+                src={imgSrc(post.author.profileImage, "/default-avatar.png")}
                 alt={post.author.username}
-                className="w-full h-full object-cover"
+                width={42}
+                height={42}
               />
             </div>
+
             <div className="author-info">
               <h2 className="author-name">{post.author.username}</h2>
-              <p className="post-time">{new Date(post.createdAt).toLocaleString()}</p>
+              <p className="post-time">
+                {new Date(post.createdAt).toLocaleString()}
+              </p>
             </div>
           </Link>
         </div>
@@ -545,7 +549,7 @@ export default function PostDetailPage() {
 
   /* Author */
   .author-section {
-    padding: 20px;
+    padding: 16px 20px;
     border-bottom: 1px solid var(--border);
   }
 
@@ -554,23 +558,41 @@ export default function PostDetailPage() {
     align-items: center;
     gap: 12px;
     text-decoration: none;
+    color: inherit;
+
+    /* important: stop stretching / weird spacing */
+    width: fit-content;
+    max-width: 100%;
   }
 
   .author-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    min-height: 42px;
+    max-width: 42px;
+    max-height: 42px;
+    border-radius: 9999px;
     overflow: hidden;
-    flex-shrink: 0;
+    flex: 0 0 42px;
     background: var(--surface-2);
     border: 1px solid var(--border);
   }
 
   .author-avatar img {
-    width: 100%;
-    height: 100%;
+    width: 42px !important;
+    height: 42px !important;
     object-fit: cover;
+    display: block;
   }
+
+  .author-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+  }
+
 
   .avatar-placeholder {
     width: 100%;
@@ -583,10 +605,6 @@ export default function PostDetailPage() {
     font-family: "Poppins", sans-serif;
     font-weight: 700;
     font-size: 20px;
-  }
-
-  .author-info {
-    flex: 1;
   }
 
   .author-name {

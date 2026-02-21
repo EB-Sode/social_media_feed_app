@@ -1,7 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "social-media-feed-be.onrender.com",
+        pathname: "/media/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

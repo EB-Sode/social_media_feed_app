@@ -94,9 +94,17 @@ export default function PostCard({
             onClick={(e) => e.stopPropagation()}
           >
             {avatar ? (
-              <img src={avatar} alt={post.authorName} />
+              <img
+                src={avatar}
+                alt={post.authorName}
+                className="avatar-img"
+                width={40}
+                height={40}
+              />
             ) : (
-              post.authorName?.charAt(0).toUpperCase()
+              <span className="avatar-fallback">
+                {post.authorName?.charAt(0).toUpperCase()}
+              </span>
             )}
           </Link>
 
@@ -143,11 +151,12 @@ export default function PostCard({
       )}
 
       {/* Image */}
-      {post.image && (
+      {post.imageUrl && (
         <div className="post-image-container">
-          <img src={imgSrc(post.image)} alt="Post image" />
+          <img src={imgSrc(post.imageUrl)} alt="Post image" />
         </div>
       )}
+      
 
       {/* Actions */}
       <div className="post-actions" onClick={(e) => e.stopPropagation()}>
@@ -179,159 +188,175 @@ export default function PostCard({
       </div>
 
       <style jsx>{`
-  .post-card {
-    background: var(--surface);
-    border: 2px solid var(--border);
-    border-radius: 16px;
-    box-shadow: 2px 2px 8px var(--shadow);
-    overflow: hidden;
-    cursor: pointer;
-    outline: none;
-    max-width: 600px;
-    margin: 0 auto;
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
-  }
+        .post-card {
+          background: var(--surface);
+          border: 2px solid var(--border);
+          border-radius: 16px;
+          box-shadow: 2px 2px 8px var(--shadow);
+          overflow: hidden;
+          cursor: pointer;
+          outline: none;
+          max-width: 600px;
+          margin: 0 auto;
+          transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
 
-  .post-card:focus-visible {
-    box-shadow: 0 0 0 3px var(--focus-offset);
-  }
+        .post-card:focus-visible {
+          box-shadow: 0 0 0 3px var(--focus-offset);
+        }
 
-  .post-header {
-    padding: 14px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: relative;
-  }
+        .post-header {
+          padding: 14px 16px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          position: relative;
+        }
 
-  .author-section {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-  }
+        .author-section {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+        }
 
-  .avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--brand), var(--brand-2));
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    overflow: hidden;
-    text-decoration: none;
-  }
+        .avatar {
+          width: 40px;
+          height: 40px;
+          min-width: 40px;
+          min-height: 40px;
+          max-width: 40px;
+          max-height: 40px;
+          border-radius: 9999px;
+          overflow: hidden;
+          display: block;        
+          flex: 0 0 40px;
+          text-decoration: none;
+          background: var(--surface-2);
+          border: 3px solid var(--border);
+        }
 
-  .avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+        .avatar-img {
+          width: 40px !important;
+          height: 40px !important;
+          object-fit: cover;
+          display: block;
+          border-radius: 9999px;
+        }
 
-  .author-info a {
-    text-decoration: none;
-    color: inherit;
-  }
+        .avatar-fallback {
+          font-weight: 700;
+          color: var(--text);
+        }
 
-  .author-name {
-    font-size: 14px;
-    font-weight: 600;
-    margin: 0;
-    color: var(--text);
-  }
 
-  .timestamp {
-    font-size: 12px;
-    color: var(--muted);
-    margin: 0;
-  }
+        .author-info a {
+          text-decoration: none;
+          color: inherit;
+        }
 
-  .post-content {
-    padding: 0 16px 12px;
-    color: var(--text);
-  }
+        .author-name {
+          font-size: 14px;
+          font-weight: 600;
+          margin: 0;
+          color: var(--text);
+        }
 
-  .post-image-container img {
-    width: 100%;
-    display: block;
-    object-fit: cover;
-    max-height: 600px;
-  }
+        .timestamp {
+          font-size: 12px;
+          color: var(--muted);
+          margin: 0;
+        }
 
-  .post-actions {
-    padding: 12px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+        .post-content {
+          padding: 0 16px 12px;
+          color: var(--text);
+        }
 
-  .actions-left {
-    display: flex;
-    gap: 14px;
-  }
+        .post-image-container img {
+          width: 100%;
+          display: block;
+          object-fit: cover;
+          max-height: 600px;
+        }
 
-  .icon-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.2s;
-    color: inherit;
-    text-decoration: none;
-  }
+        .post-image-container img {
+          width: 100%;
+          display: block;
+          max-height: 300px;
+        }
 
-  .icon-btn:hover {
-    opacity: 0.7;
-  }
+        .post-actions {
+          padding: 12px 16px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
 
-  /* menu */
-  .menu-wrap {
-    position: relative;
-  }
+        .actions-left {
+          display: flex;
+          gap: 14px;
+        }
 
-  .menu {
-    position: absolute;
-    right: 0;
-    top: 36px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    box-shadow: 0 8px 20px var(--shadow);
-    border-radius: 12px;
-    overflow: hidden;
-    min-width: 160px;
-    z-index: 20;
-  }
+        .icon-btn {
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: opacity 0.2s;
+          color: inherit;
+          text-decoration: none;
+        }
 
-  .menu-item {
-    width: 100%;
-    padding: 10px 12px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    color: var(--text);
-  }
+        .icon-btn:hover {
+          opacity: 0.7;
+        }
 
-  .menu-item:hover {
-    background: var(--hover);
-  }
+        /* menu */
+        .menu-wrap {
+          position: relative;
+        }
 
-  .menu-item.danger {
-    color: #ef4444;
-  }
+        .menu {
+          position: absolute;
+          right: 0;
+          top: 36px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          box-shadow: 0 8px 20px var(--shadow);
+          border-radius: 12px;
+          overflow: hidden;
+          min-width: 160px;
+          z-index: 20;
+        }
 
-  .menu-item.danger:hover {
-    background: rgba(239, 68, 68, 0.06);
-  }
-`}</style>
+        .menu-item {
+          width: 100%;
+          padding: 10px 12px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-size: 14px;
+          color: var(--text);
+        }
+
+        .menu-item:hover {
+          background: var(--hover);
+        }
+
+        .menu-item.danger {
+          color: #ef4444;
+        }
+
+        .menu-item.danger:hover {
+          background: rgba(239, 68, 68, 0.06);
+        }
+      `}</style>
 
     </article>
   );

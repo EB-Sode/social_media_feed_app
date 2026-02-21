@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Bell, Search, Menu, User, LogOut, Moon, Sun } from "lucide-react";
+import { Home, Bell, Search, Menu, LogOut, Moon, Sun } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useNotificationsLive } from "@/hooks/useNotifications";
 
@@ -70,20 +70,18 @@ export default function Sidebar() {
 
         <div className="nav-items">
           <Link href={profileLink} className="nav-item" aria-label="Profile">
-            <div className="profile-avatar h-10 w-10">
-              {user?.profileImage ? (
-                <img
-                  src={imgSrc(user.profileImage)}
-                  alt={user?.username ?? "User"}
-                  className="h-10 w-10 rounded-full object-cover"
-                />
-              ) : (
-                <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                  <User size={32} />
-                </div>
-              )}
+            <div className="profile-avatar">
+              <img
+                src={imgSrc(user?.profileImage, "/default-avatar.png")}
+                alt={user?.username ?? "User"}
+                className="profile-avatar-img"
+                onError={(e) => {
+                  e.currentTarget.src = "/default-avatar.png";
+                }}
+              />
             </div>
           </Link>
+
 
           <Link
             href="/feed"
@@ -287,17 +285,21 @@ export default function Sidebar() {
         }
 
         .profile-avatar {
-          width: 44px;
-          height: 44px;
-          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          border-radius: 9999px;
           overflow: hidden;
-          border: 2px solid var(--border);
-          transition: transform 0.2s ease;
-          cursor: pointer;
+          display: block;
+          position: relative;
+          z-index: 1;
+          background: rgba(0,0,0,0.06);
         }
 
-        .profile-avatar:hover {
-          transform: scale(1.05);
+        .profile-avatar-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
         }
 
         /* Full-screen settings overlay */
