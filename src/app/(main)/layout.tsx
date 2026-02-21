@@ -55,7 +55,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             seeMoreHref="/users"
           />
         <div>
-          <h2 className="text-xl font-bold mb-8">Your Followers</h2>
           {/* <FollowersList /> */}
           {user?.id ? (
             <>
@@ -80,60 +79,61 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         />
       )}
 
-      <style jsx>{`
-        .app-layout {
-          display: grid;
-          grid-template-columns: 200px 1fr 500px;
-          min-height: 100vh;
-          background: #70d686;
-          gap: 0;
-        }
+  <style jsx>{`
+    .app-layout {
+      display: grid;
+      grid-template-columns: 200px 1fr 500px;
+      min-height: 100vh;
+      background: var(--bg);
+      gap: 0;
+    }
 
-        .sidebar-left {
-          background: #70d686;
-          border-right: 2px solid rgba(0, 0, 0, 0.1);
-          position: sticky;
-          top: 0;
-          height: 100vh;
-        }
+    .sidebar-left {
+      background: linear-gradient(180deg, var(--bg) 0%, var(--surface) 100%);
+      border-right: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
 
-        .main-feed {
-          background: #b1f5bf;
-          overflow-y: auto;
-          max-width: auto;
-          margin: 0 auto;
-          width: 100%;
-          min-height: 100vh;
-        }
+    .main-feed {
+      background: linear-gradient(180deg, var(--bg) 0%, var(--surface) 100%);
+      overflow-y: auto;
+      width: 100%;
+      min-height: 100vh;
+    }
 
-        .sidebar-right {
-          background: #70d686;
-          border-left: 2px solid rgba(0, 0, 0, 0.1);
-          position: sticky;
-          top: 0;
-          height: 100vh;
-          overflow-y: auto;
-        }
+    .sidebar-right {
+      background: linear-gradient(180deg, var(--bg) 0%, var(--surface) 100%);
+      border-left: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
 
-        /* Responsive */
-        @media (max-width: 1200px) {
-          .app-layout {
-            grid-template-columns: 80px 1fr;
-          }
-          .sidebar-right {
-            display: none;
-          }
-        }
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .app-layout {
+        grid-template-columns: 80px 1fr;
+      }
 
-        @media (max-width: 768px) {
-          .app-layout {
-            grid-template-columns: 1fr;
-          }
-          .sidebar-left {
-            display: none;
-          }
-        }
-      `}</style>
+      .sidebar-right {
+        display: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .app-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar-left {
+        display: none;
+      }
+    }
+  `}</style>
+
     </div>
   );
 }

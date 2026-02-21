@@ -155,13 +155,17 @@ export default function NotificationsList() {
         .notifications-wrapper {
           width: 100%;
           min-height: 100vh;
-          background: linear-gradient(180deg, #f8fffe 0%, #ffffff 100%);
+          background: linear-gradient(180deg, var(--bg) 0%, var(--surface) 100%);
+        }
+
+        html.dark .notifications-wrapper {
+          background: linear-gradient(180deg, var(--bg) 0%, var(--surface) 100%);
         }
 
         .notifications-header {
-          background: white;
+          background: var(--surface);
           padding: 24px 24px 0 24px;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+          border-bottom: 1px solid var(--border);
           position: sticky;
           top: 0;
           z-index: 10;
@@ -188,7 +192,7 @@ export default function NotificationsList() {
           justify-content: center;
           background: transparent;
           border: none;
-          color: #1f2937;
+          color: var(--text);
           cursor: pointer;
           border-radius: 10px;
           transition: all 0.2s ease;
@@ -196,7 +200,7 @@ export default function NotificationsList() {
         }
 
         .back-button:hover {
-          background: rgba(31, 41, 55, 0.1);
+          background: var(--hover);
           transform: translateX(-2px);
         }
 
@@ -208,7 +212,7 @@ export default function NotificationsList() {
           font-family: "Poppins", sans-serif;
           font-size: 28px;
           font-weight: 700;
-          color: #1f2937;
+          color: var(--text);
           margin: 0;
           letter-spacing: -0.5px;
         }
@@ -216,7 +220,7 @@ export default function NotificationsList() {
         .mark-all-btn {
           background: transparent;
           border: none;
-          color: #2b8761;
+          color: var(--brand);
           font-family: "Inter", sans-serif;
           font-size: 14px;
           font-weight: 600;
@@ -228,13 +232,17 @@ export default function NotificationsList() {
         }
 
         .mark-all-btn:hover {
-          background: rgba(43, 135, 97, 0.1);
+          background: rgba(43, 135, 97, 0.12);
+        }
+
+        html.dark .mark-all-btn:hover {
+          background: rgba(43, 135, 97, 0.18);
         }
 
         .filter-tabs {
           display: flex;
           gap: 8px;
-          border-bottom: 2px solid rgba(0, 0, 0, 0.06);
+          border-bottom: 2px solid var(--border);
         }
 
         .filter-tab {
@@ -244,7 +252,7 @@ export default function NotificationsList() {
           font-family: "Inter", sans-serif;
           font-size: 15px;
           font-weight: 600;
-          color: #6b7280;
+          color: var(--muted);
           cursor: pointer;
           position: relative;
           transition: all 0.2s ease;
@@ -256,26 +264,34 @@ export default function NotificationsList() {
         }
 
         .filter-tab:hover {
-          color: #1f2937;
+          color: var(--text);
         }
 
         .filter-tab.active {
-          color: #2b8761;
-          border-bottom-color: #2b8761;
+          color: var(--brand);
+          border-bottom-color: var(--brand);
         }
 
         .count {
-          background: rgba(107, 114, 128, 0.1);
-          color: #6b7280;
+          background: rgba(107, 114, 128, 0.12);
+          color: var(--muted);
           padding: 2px 8px;
           border-radius: 12px;
           font-size: 12px;
           font-weight: 600;
         }
 
+        html.dark .count {
+          background: rgba(148, 163, 184, 0.14);
+        }
+
         .filter-tab.active .count {
-          background: rgba(43, 135, 97, 0.15);
-          color: #2b8761;
+          background: rgba(43, 135, 97, 0.18);
+          color: var(--brand);
+        }
+
+        html.dark .filter-tab.active .count {
+          background: rgba(43, 135, 97, 0.22);
         }
 
         .unread-count {
@@ -304,14 +320,14 @@ export default function NotificationsList() {
           font-family: "Poppins", sans-serif;
           font-size: 18px;
           font-weight: 600;
-          color: #1f2937;
+          color: var(--text);
           margin: 0 0 8px 0;
         }
 
         .empty-subtext {
           font-family: "Inter", sans-serif;
           font-size: 14px;
-          color: #6b7280;
+          color: var(--muted);
           margin: 0;
         }
 
@@ -333,7 +349,8 @@ export default function NotificationsList() {
             margin-bottom: 16px;
           }
         }
-      `}</style>
+        `}</style>
+
     </div>
   );
 }

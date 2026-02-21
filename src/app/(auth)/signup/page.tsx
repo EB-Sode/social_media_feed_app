@@ -205,25 +205,27 @@ export default function SignupPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #b1f5bf;
+          background: linear-gradient(180deg, var(--bg) 0%, var(--surface) 100%);
           padding: 20px;
           width: 100%;
+          color: var(--text);
         }
 
         .auth-card {
           width: 100%;
           max-width: 420px;
-          background: #b1f5bf;
+          background: var(--surface);
+          border: 1px solid var(--border);
           border-radius: 16px;
           padding: 48px 40px;
-          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+          box-shadow: 0 10px 40px var(--shadow);
         }
 
         .auth-title {
           font-family: "Poppins", sans-serif;
           font-size: 36px;
           font-weight: 700;
-          color: #1f2937;
+          color: var(--text);
           text-align: center;
           margin: 0 0 32px 0;
         }
@@ -235,14 +237,20 @@ export default function SignupPage() {
         }
 
         .error-message {
-          background: #fee2e2;
-          color: #991b1b;
+          background: rgba(239, 68, 68, 0.12);
+          color: #b91c1c;
           padding: 12px 16px;
           border-radius: 8px;
           font-family: "Inter", sans-serif;
           font-size: 14px;
           font-weight: 500;
-          border: 1px solid #fecaca;
+          border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        html.dark .error-message {
+          background: rgba(239, 68, 68, 0.14);
+          color: #fecaca;
+          border: 1px solid rgba(239, 68, 68, 0.28);
         }
 
         .form-group {
@@ -255,29 +263,29 @@ export default function SignupPage() {
           font-family: "Inter", sans-serif;
           font-size: 14px;
           font-weight: 500;
-          color: #1f2937;
+          color: var(--text);
         }
 
         .form-input {
           width: 100%;
           padding: 14px 16px;
-          background: white;
-          border: 1px solid rgba(0, 0, 0, 0.1);
+          background: var(--surface);
+          border: 1px solid var(--border);
           border-radius: 8px;
           font-family: "Inter", sans-serif;
           font-size: 15px;
-          color: #1f2937;
+          color: var(--text);
           transition: all 0.2s ease;
         }
 
         .form-input::placeholder {
-          color: #9ca3af;
+          color: var(--muted);
         }
 
         .form-input:focus {
           outline: none;
-          border-color: #2b8761;
-          box-shadow: 0 0 0 3px rgba(43, 135, 97, 0.1);
+          border-color: var(--brand);
+          box-shadow: 0 0 0 3px var(--focus-offset);
         }
 
         .form-input:disabled {
@@ -296,7 +304,7 @@ export default function SignupPage() {
           transform: translateY(-50%);
           background: transparent;
           border: none;
-          color: #6b7280;
+          color: var(--muted);
           cursor: pointer;
           padding: 4px;
           display: flex;
@@ -306,7 +314,7 @@ export default function SignupPage() {
         }
 
         .password-toggle:hover:not(:disabled) {
-          color: #1f2937;
+          color: var(--text);
         }
 
         .password-toggle:disabled {
@@ -321,14 +329,14 @@ export default function SignupPage() {
         .form-hint {
           font-family: "Inter", sans-serif;
           font-size: 12px;
-          color: #2b8761;
+          color: var(--brand);
           margin: 0;
         }
 
         .submit-btn {
           width: 100%;
           padding: 14px 24px;
-          background: #2b8761;
+          background: var(--brand);
           color: white;
           border: none;
           border-radius: 12px;
@@ -341,7 +349,7 @@ export default function SignupPage() {
         }
 
         .submit-btn:hover:not(:disabled) {
-          background: #1f6949;
+          background: var(--brand-2);
           transform: translateY(-2px);
           box-shadow: 0 6px 20px rgba(43, 135, 97, 0.3);
         }
@@ -358,14 +366,15 @@ export default function SignupPage() {
         .terms-text {
           font-family: "Inter", sans-serif;
           font-size: 12px;
-          color: #1f2937;
+          color: var(--text);
           text-align: center;
           margin: 4px 0 0 0;
           line-height: 1.5;
+          opacity: 0.9;
         }
 
         .terms-link {
-          color: #2b8761;
+          color: var(--brand);
           text-decoration: none;
           font-weight: 500;
         }
@@ -377,13 +386,13 @@ export default function SignupPage() {
         .switch-auth {
           font-family: "Inter", sans-serif;
           font-size: 14px;
-          color: #1f2937;
+          color: var(--text);
           text-align: center;
           margin: 8px 0 0 0;
         }
 
         .switch-link {
-          color: #2b8761;
+          color: var(--brand);
           text-decoration: none;
           font-weight: 600;
         }
@@ -403,6 +412,7 @@ export default function SignupPage() {
           }
         }
       `}</style>
+
     </div>
   );
 }

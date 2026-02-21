@@ -71,53 +71,59 @@ export default function ProfileSidebar({
         </svg>
       </button>
 
-      <style jsx>{`
+     <style jsx>{`
+      .sidebar-nav {
+        position: sticky;           /* stays visible while scrolling (optional) */
+        top: 90px;                  /* adjust if Header height differs */
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        z-index: 3;
+        align-self: start;          /* important inside grid */
+      }
+
+      .nav-icon {
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        border-radius: 8px;
+        transition: color 0.2s, background 0.2s;
+      }
+
+      .nav-icon:hover {
+        color: var(--brand);
+        background: rgba(43, 135, 97, 0.12);
+      }
+
+      html.dark .nav-icon:hover {
+        background: rgba(43, 135, 97, 0.18);
+      }
+
+      .nav-icon:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        background: none;
+      }
+
+      @media (max-width: 1024px) {
         .sidebar-nav {
-          position: absolute;
-          left: 20px;
-          top: 40px;
-          display: flex;
-          flex-direction: column;
-          gap: 24px;
-          z-index: 3;
-        }
-
-        .nav-icon {
-          width: 34px;
-          height: 34px;
-          display: flex;
-          align-items: center;
+          position: relative;       /* becomes normal */
+          top: 0;
+          flex-direction: row;
           justify-content: center;
-          background: none;
-          border: none;
-          color: #6b7280;
-          cursor: pointer;
-          border-radius: 8px;
-          transition: color 0.2s, background 0.2s;
+          gap: 16px;
+          margin: 10px 0 0;
         }
+      }
 
-        .nav-icon:hover {
-          color: #2b8761;
-          background: rgba(43, 135, 97, 0.08);
-        }
+     `}</style>
 
-        .nav-icon:disabled {
-          opacity: 0.45;
-          cursor: not-allowed;
-          background: none;
-        }
-
-        @media (max-width: 860px) {
-          .sidebar-nav {
-            position: relative;
-            left: unset;
-            top: unset;
-            flex-direction: row;
-            justify-content: center;
-            margin-bottom: 8px;
-          }
-        }
-      `}</style>
     </div>
   );
 }

@@ -166,7 +166,7 @@ export default function EditProfile({ user, onClose, onSave }: EditProfileProps)
         .edit-profile-overlay {
           position: fixed;
           inset: 0;
-          background: #b1f5bf;
+          background: var(--bg);
           z-index: 100;
           overflow-y: auto;
         }
@@ -176,16 +176,16 @@ export default function EditProfile({ user, onClose, onSave }: EditProfileProps)
           max-width: 600px;
           margin: 0 auto;
           min-height: 100vh;
-          background: #b1f5bf;
+          background: var(--bg);
         }
 
         .edit-header {
-          background: #b1f5bf;
+          background: var(--bg);
           padding: 20px 24px;
           display: flex;
           align-items: center;
           gap: 16px;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+          border-bottom: 1px solid var(--border);
           position: sticky;
           top: 0;
           z-index: 2;
@@ -199,21 +199,21 @@ export default function EditProfile({ user, onClose, onSave }: EditProfileProps)
           justify-content: center;
           background: transparent;
           border: none;
-          color: #1f2937;
+          color: var(--text);
           cursor: pointer;
           border-radius: 10px;
-          transition: background 0.2s ease;
+          transition: background 0.2s ease, transform 0.2s ease;
         }
 
         .back-button:hover {
-          background: rgba(31, 41, 55, 0.1);
+          background: var(--hover);
         }
 
         .edit-title {
           font-family: "Poppins", sans-serif;
           font-size: 24px;
           font-weight: 700;
-          color: #1f2937;
+          color: var(--text);
           margin: 0;
         }
 
@@ -230,8 +230,12 @@ export default function EditProfile({ user, onClose, onSave }: EditProfileProps)
           position: relative;
           border-radius: 14px;
           overflow: hidden;
-          background: rgba(255,255,255,0.5);
-          border: 1px solid rgba(0,0,0,0.08);
+          background: rgba(255, 255, 255, 0.5);
+          border: 1px solid var(--border);
+        }
+
+        html.dark .cover-wrap {
+          background: rgba(15, 23, 42, 0.55);
         }
 
         .cover-img {
@@ -248,7 +252,7 @@ export default function EditProfile({ user, onClose, onSave }: EditProfileProps)
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          background: rgba(31,41,55,0.9);
+          background: rgba(31, 41, 55, 0.9);
           color: white;
           padding: 10px 12px;
           border-radius: 10px;
@@ -276,8 +280,8 @@ export default function EditProfile({ user, onClose, onSave }: EditProfileProps)
           height: 120px;
           border-radius: 50%;
           object-fit: cover;
-          border: 4px solid #b1f5bf;
-          background: white;
+          border: 4px solid var(--bg);
+          background: var(--surface);
           display: block;
         }
 
@@ -287,8 +291,8 @@ export default function EditProfile({ user, onClose, onSave }: EditProfileProps)
           right: 0;
           width: 40px;
           height: 40px;
-          background: #2b8761;
-          border: 3px solid #b1f5bf;
+          background: var(--brand);
+          border: 3px solid var(--bg);
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -299,7 +303,7 @@ export default function EditProfile({ user, onClose, onSave }: EditProfileProps)
         }
 
         .camera-button:hover {
-          background: #1f6949;
+          background: var(--brand-2);
           transform: scale(1.05);
         }
 
@@ -320,31 +324,35 @@ export default function EditProfile({ user, onClose, onSave }: EditProfileProps)
           font-family: "Inter", sans-serif;
           font-size: 14px;
           font-weight: 600;
-          color: #1f2937;
+          color: var(--text);
         }
 
         .form-input {
           width: 100%;
           padding: 14px 16px;
-          background: white;
-          border: 1px solid rgba(0, 0, 0, 0.1);
+          background: var(--surface);
+          border: 1px solid var(--border);
           border-radius: 12px;
           font-family: "Inter", sans-serif;
           font-size: 15px;
-          color: #1f2937;
+          color: var(--text);
           transition: all 0.2s ease;
+        }
+
+        .form-input::placeholder {
+          color: var(--muted);
         }
 
         .form-input:focus {
           outline: none;
-          border-color: #2b8761;
-          box-shadow: 0 0 0 3px rgba(43, 135, 97, 0.1);
+          border-color: var(--brand);
+          box-shadow: 0 0 0 3px var(--focus-offset);
         }
 
         .save-button {
           width: 100%;
           padding: 16px 24px;
-          background: #1f2937;
+          background: var(--brand);
           color: white;
           border: none;
           border-radius: 12px;
@@ -357,16 +365,24 @@ export default function EditProfile({ user, onClose, onSave }: EditProfileProps)
         }
 
         .save-button:hover {
-          background: #111827;
+          background: var(--brand-2);
           transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(31, 41, 55, 0.3);
+          box-shadow: 0 6px 20px rgba(43, 135, 97, 0.25);
         }
 
         @media (max-width: 480px) {
-          .edit-header { padding: 16px; }
-          .edit-title { font-size: 20px; }
-          .edit-content { padding: 16px; }
-          .cover-img { height: 160px; }
+          .edit-header {
+            padding: 16px;
+          }
+          .edit-title {
+            font-size: 20px;
+          }
+          .edit-content {
+            padding: 16px;
+          }
+          .cover-img {
+            height: 160px;
+          }
         }
       `}</style>
     </div>

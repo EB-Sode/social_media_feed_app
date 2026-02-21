@@ -77,100 +77,101 @@ export default function Header({
       </div>
 
       <style jsx>{`
-        .header {
-          width: 100%;
-          background: #70d686;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-          position: sticky;
-          top: 0;
-          z-index: 100;
-        }
+  .header {
+    width: 100%;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
 
-        .header-content {
-          padding: 2px 40px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
+  .header-content {
+    padding: 2px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 
-        .header-left {
-          display: flex;
-          align-items: center;
-        }
+  .header-left {
+    display: flex;
+    align-items: center;
+  }
 
-        .app-name {
-          font-family: "Poppins", sans-serif;
-          font-size: 20px;
-          font-weight: 700;
-          color: #1f2937;
-          margin: 0;
-        }
+  .app-name {
+    font-family: "Poppins", sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+  }
 
-        .header-actions {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 
-        .header-btn {
-          width: 40px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: transparent;
-          border: none;
-          color: #1f2937;
-          cursor: pointer;
-          border-radius: 8px;
-          transition: background 0.2s ease;
-        }
+  .header-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
 
-        .header-btn:hover:not(:disabled) {
-          background: rgba(31, 41, 55, 0.1);
-        }
+  .header-btn:hover:not(:disabled) {
+    background: var(--hover);
+  }
 
-        .header-btn:disabled {
-          opacity: 0.4;
-          cursor: not-allowed;
-        }
+  .header-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 
-        .header-btn :global(svg) {
-          color: currentColor;
-        }
+  .header-btn :global(svg) {
+    color: currentColor;
+  }
 
-        .nav {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          margin-left: 6px;
-        }
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 6px;
+  }
 
-        .nav-link {
-          width: 40px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #6b7280;
-          border-radius: 10px;
-          transition: all 0.2s ease;
-        }
+  .nav-link {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    border-radius: 10px;
+    transition: all 0.2s ease;
+  }
 
-        .nav-link:hover {
-          background: rgba(43, 135, 97, 0.08);
-          color: #2b8761;
-        }
+  .nav-link:hover {
+    background: var(--hover);
+    color: var(--brand);
+  }
 
-        .nav-link.active {
-          color: #2b8761;
-          background: rgba(43, 135, 97, 0.1);
-        }
+  .nav-link.active {
+    color: var(--brand);
+    background: var(--hover);
+  }
 
-        .nav-link :global(svg) {
-          color: currentColor;
-        }
-      `}</style>
+  .nav-link :global(svg) {
+    color: currentColor;
+  }
+  `}</style>
+
     </header>
   );
 }

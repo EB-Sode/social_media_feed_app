@@ -134,203 +134,220 @@ export default function NotificationItem({ notification, onMarkAsRead }: Notific
       </button>
 
       <style jsx>{`
-        .notification-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 16px 24px;
-          background: white;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-          transition: all 0.2s ease;
-          position: relative;
-        }
+  .notification-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    transition: all 0.2s ease;
+    position: relative;
+  }
 
-        .notification-item:hover {
-          background: rgba(43, 135, 97, 0.03);
-        }
+  .notification-item:hover {
+    background: var(--hover);
+  }
 
-        .notification-item.unread {
-          background: rgba(43, 135, 97, 0.05);
-        }
+  .notification-item.unread {
+    background: var(--surface);
+  }
 
-        .notification-item.unread:hover {
-          background: rgba(43, 135, 97, 0.08);
-        }
+  html.dark .notification-item.unread {
+    background: rgba(43, 135, 97, 0.14);
+  }
 
-        .unread-dot {
-          width: 8px;
-          height: 8px;
-          background: #2b8761;
-          border-radius: 50%;
-          position: absolute;
-          left: 8px;
-          top: 50%;
-          transform: translateY(-50%);
-        }
+  .notification-item.unread:hover {
+    background: rgba(43, 135, 97, 0.12);
+  }
 
-        .notification-main {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          flex: 1;
-          min-width: 0;
-          background: transparent;
-          border: none;
-          padding: 0;
-          cursor: pointer;
-          text-align: left;
-        }
+  html.dark .notification-item.unread:hover {
+    background: rgba(43, 135, 97, 0.18);
+  }
 
-        .notification-main:focus-visible {
-          outline: 2px solid rgba(43, 135, 97, 0.6);
-          outline-offset: 4px;
-          border-radius: 12px;
-        }
+  .unread-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--brand);
+    border-radius: 50%;
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
 
-        .avatar-container {
-          position: relative;
-          flex-shrink: 0;
-        }
+  .notification-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+    color: inherit;
+  }
 
-        .avatar {
-          width: 48px;
-          height: 48px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-family: "Poppins", sans-serif;
-          font-weight: 600;
-          font-size: 16px;
-          overflow: hidden;
-        }
+  .notification-main:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+    border-radius: 12px;
+  }
 
-        .avatar-image {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
+  .avatar-container {
+    position: relative;
+    flex-shrink: 0;
+  }
 
-        .icon-badge {
-          position: absolute;
-          bottom: -2px;
-          right: -2px;
-          width: 24px;
-          height: 24px;
-          background: white;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
+  .avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--muted) 0%, rgba(31, 41, 55, 0.75) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: "Poppins", sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    overflow: hidden;
+  }
 
-        .notification-content {
-          flex: 1;
-          min-width: 0;
-        }
+  html.dark .avatar {
+    background: linear-gradient(135deg, rgba(148, 163, 184, 0.9) 0%, rgba(30, 41, 59, 0.95) 100%);
+  }
 
-        .notification-text {
-          font-family: "Inter", sans-serif;
-          font-size: 14px;
-          line-height: 1.5;
-          color: #1f2937;
-          margin-bottom: 4px;
-        }
+  .avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-        .user-name {
-          font-weight: 600;
-          color: #1f2937;
-        }
+  .icon-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 24px;
+    height: 24px;
+    background: var(--surface);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px var(--shadow);
+    border: 1px solid var(--border);
+  }
 
-        .action-text {
-          font-weight: 400;
-          color: #6b7280;
-        }
+  .notification-content {
+    flex: 1;
+    min-width: 0;
+  }
 
-        .comment-preview {
-          font-family: "Inter", sans-serif;
-          font-size: 14px;
-          color: #6b7280;
-          margin: 4px 0;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-        }
+  .notification-text {
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
 
-        .timestamp {
-          font-family: "Inter", sans-serif;
-          font-size: 12px;
-          color: #9ca3af;
-          font-weight: 400;
-        }
+  .user-name {
+    font-weight: 600;
+    color: var(--text);
+  }
 
-        .post-thumbnail {
-          width: 48px;
-          height: 48px;
-          border-radius: 8px;
-          overflow: hidden;
-          flex-shrink: 0;
-          border: 1px solid rgba(0, 0, 0, 0.08);
-        }
+  .action-text {
+    font-weight: 400;
+    color: var(--muted);
+  }
 
-        .thumbnail-image {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
+  .comment-preview {
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    margin: 4px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
 
-        .follow-back-btn {
-          background: #2b8761;
-          color: white;
-          border: none;
-          padding: 8px 16px;
-          border-radius: 8px;
-          font-family: "Inter", sans-serif;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          flex-shrink: 0;
-        }
+  .timestamp {
+    font-family: "Inter", sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 400;
+    opacity: 0.85;
+  }
 
-        .follow-back-btn:hover {
-          background: #1f6949;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 8px rgba(43, 135, 97, 0.2);
-        }
+  .post-thumbnail {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+  }
 
-        .follow-back-btn:active {
-          transform: translateY(0);
-        }
+  .thumbnail-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-        .more-btn {
-          background: transparent;
-          border: none;
-          color: #9ca3af;
-          cursor: pointer;
-          padding: 4px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 6px;
-          transition: all 0.2s ease;
-          flex-shrink: 0;
-        }
+  .follow-back-btn {
+    background: var(--brand);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-family: "Inter", sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
 
-        .more-btn:hover {
-          background: rgba(0, 0, 0, 0.05);
-          color: #6b7280;
-        }
+  .follow-back-btn:hover {
+    background: var(--brand-2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(43, 135, 97, 0.2);
+  }
 
-        .more-btn :global(svg) {
-          color: currentColor;
-        }
-      `}</style>
+  .follow-back-btn:active {
+    transform: translateY(0);
+  }
+
+  .more-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .more-btn:hover {
+    background: var(--hover);
+    color: var(--text);
+  }
+
+  .more-btn :global(svg) {
+    color: currentColor;
+  }
+`}</style>
+
     </article>
   );
 }

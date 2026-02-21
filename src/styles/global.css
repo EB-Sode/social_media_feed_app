@@ -1,32 +1,107 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* CSS Reset & Base Styles */
+/* ================================
+   THEME TOKENS (Light + Dark)
+================================ */
+:root {
+  /* Surfaces */
+  --bg: #b1f5bf;              /* app background */
+  --surface: #e4ede2;         /* cards/panels */
+  --surface-2: #62bf92;       /* subtle surface */
+
+  /* Text */
+  --text: #111827;            /* primary text */
+  --muted: #6b7280;           /* secondary text */
+
+  /* UI */
+  --border: #70D686;
+  --hover: rgba(31, 41, 55, 0.08);
+  --shadow: rgba(0, 0, 0, 0.08);
+
+  /* Brand */
+  --brand: #2b8761;
+  --brand-2: #1f6949;
+
+  /* Focus ring */
+  --focus: rgba(43, 135, 97, 0.9);
+  --focus-offset: rgba(43, 135, 97, 0.25);
+}
+
+html.dark {
+  /* Surfaces */
+  --bg: #70D686;
+  --surface: #0f3728;
+  --surface-2: #0a3c0e;
+
+  /* Text */
+  --text: #e5e7eb;
+  --muted: #7eff21;
+
+  /* UI */
+  --border: rgba(148, 163, 184, 0.25);  
+  --hover: rgba(148, 163, 184, 0.12);
+  --shadow: rgba(0, 0, 0, 0.35);
+
+  /* Brand (keep brand consistent) */
+  --brand: #2b8761;
+  --brand-2: #1f6949;
+
+  /* Focus ring */
+  --focus: rgba(43, 135, 97, 0.45);
+  --focus-offset: rgba(43, 135, 97, 0.3);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+   transition: background-color 200ms ease, color 200ms ease;
+}
+
+* {
+  transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
+}
+
+/* ================================
+   CSS Reset & Base Styles
+================================ */
 * {
   box-sizing: border-box;
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  color: #111111;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  color: var(--text);
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #f9fafb;
+  background: var(--bg);
+  transition: background-color 200ms ease, color 200ms ease;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Poppins', sans-serif;
+* {
+  transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Poppins", sans-serif;
   margin: 0;
   font-weight: 600;
+  color: var(--text);
 }
 
 p {
   margin: 0;
+  color: var(--text);
 }
 
 a {
@@ -40,38 +115,40 @@ button {
   background: none;
   cursor: pointer;
   padding: 0;
+  color: inherit;
 }
 
-/* Smooth Scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Custom Scrollbar */
+/* ================================
+   Custom Scrollbar
+================================ */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2b8761;
+  background: var(--brand);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #1f6949;
+  background: var(--brand-2);
 }
 
-/* Focus Styles for Accessibility */
+/* ================================
+   Focus Styles for Accessibility
+================================ */
 *:focus-visible {
-  outline: 2px solid #2b8761;
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
-/* Animation Utilities */
+/* ================================
+   Animation Utilities
+================================ */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -102,7 +179,9 @@ html {
   animation: slideUp 0.5s ease-out;
 }
 
-/* Utility Classes */
+/* ================================
+   Utility Classes
+================================ */
 .container {
   width: 100%;
   max-width: 390px;
@@ -111,19 +190,20 @@ html {
 }
 
 .card {
-  background: white;
+  background: var(--surface);
   border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px var(--shadow);
   padding: 20px;
+  border: 1px solid var(--border);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #2b8761 0%, #1f6949 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
   color: white;
   padding: 12px 24px;
   border-radius: 12px;
   font-weight: 600;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(43, 135, 97, 0.2);
 }
@@ -139,8 +219,13 @@ html {
 
 /* Text Utilities */
 .text-gradient {
-  background: linear-gradient(135deg, #2b8761 0%, #1f6949 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Optional: a generic hover surface helper */
+.hover-surface:hover {
+  background: var(--hover);
 }

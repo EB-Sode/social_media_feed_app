@@ -32,12 +32,9 @@ export default function PostCard({
   onEdit,
 }: PostCardProps) {
   const router = useRouter();
-
   const isOwner = currentUserId && String(currentUserId) === String(post.authorId);
-
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
-
   const goToPost = () => router.push(`/post/${post.id}`);
 
   // Close menu if user clicks outside
@@ -182,157 +179,160 @@ export default function PostCard({
       </div>
 
       <style jsx>{`
-        .post-card {
-          background: white;
-          border: 2px solid #e5e7eb;
-          border-radius: 16px;
-          box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.08);
-          overflow: hidden;
-          cursor: pointer;
-          outline: none;
-          max-width: 600px;
-          margin: 0 auto;
-          transition: transform 0.1s ease, box-shadow 0.1s ease;
-        }
+  .post-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 2px 2px 8px var(--shadow);
+    overflow: hidden;
+    cursor: pointer;
+    outline: none;
+    max-width: 600px;
+    margin: 0 auto;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
 
-        .post-card:focus-visible {
-          box-shadow: 0 0 0 3px rgba(43, 135, 97, 0.25);
-        }
+  .post-card:focus-visible {
+    box-shadow: 0 0 0 3px var(--focus-offset);
+  }
 
-        .post-header {
-          padding: 14px 16px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          position: relative;
-        }
+  .post-header {
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+  }
 
-        .author-section {
-          display: flex;
-          gap: 12px;
-          align-items: center;
-        }
+  .author-section {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
 
-        .avatar {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #2b8761, #1f6949);
-          color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 700;
-          overflow: hidden;
-          text-decoration: none;
-        }
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    overflow: hidden;
+    text-decoration: none;
+  }
 
-        .avatar img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-        .author-info a {
-          text-decoration: none;
-          color: inherit;
-        }
+  .author-info a {
+    text-decoration: none;
+    color: inherit;
+  }
 
-        .author-name {
-          font-size: 14px;
-          font-weight: 600;
-          margin: 0;
-        }
+  .author-name {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text);
+  }
 
-        .timestamp {
-          font-size: 12px;
-          color: #6b7280;
-          margin: 0;
-        }
+  .timestamp {
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0;
+  }
 
-        .post-content {
-          padding: 0 16px 12px;
-        }
+  .post-content {
+    padding: 0 16px 12px;
+    color: var(--text);
+  }
 
-        .post-image-container img {
-          width: 100%;
-          display: block;
-          object-fit: cover;
-          max-height: 600px;
-        }
+  .post-image-container img {
+    width: 100%;
+    display: block;
+    object-fit: cover;
+    max-height: 600px;
+  }
 
-        .post-actions {
-          padding: 12px 16px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
+  .post-actions {
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
-        .actions-left {
-          display: flex;
-          gap: 14px;
-        }
+  .actions-left {
+    display: flex;
+    gap: 14px;
+  }
 
-        .icon-btn {
-          background: none;
-          border: none;
-          cursor: pointer;
-          padding: 4px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: opacity 0.2s;
-          color: inherit;
-          text-decoration: none;
-        }
+  .icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+    color: inherit;
+    text-decoration: none;
+  }
 
-        .icon-btn:hover {
-          opacity: 0.7;
-        }
+  .icon-btn:hover {
+    opacity: 0.7;
+  }
 
-        /* menu */
-        .menu-wrap {
-          position: relative;
-        }
+  /* menu */
+  .menu-wrap {
+    position: relative;
+  }
 
-        .menu {
-          position: absolute;
-          right: 0;
-          top: 36px;
-          background: white;
-          border: 1px solid #e5e7eb;
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-          border-radius: 12px;
-          overflow: hidden;
-          min-width: 160px;
-          z-index: 20;
-        }
+  .menu {
+    position: absolute;
+    right: 0;
+    top: 36px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 20px var(--shadow);
+    border-radius: 12px;
+    overflow: hidden;
+    min-width: 160px;
+    z-index: 20;
+  }
 
-        .menu-item {
-          width: 100%;
-          padding: 10px 12px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          background: none;
-          border: none;
-          cursor: pointer;
-          font-size: 14px;
-          color: #111827;
-        }
+  .menu-item {
+    width: 100%;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text);
+  }
 
-        .menu-item:hover {
-          background: #f9fafb;
-        }
+  .menu-item:hover {
+    background: var(--hover);
+  }
 
-        .menu-item.danger {
-          color: #ef4444;
-        }
+  .menu-item.danger {
+    color: #ef4444;
+  }
 
-        .menu-item.danger:hover {
-          background: rgba(239, 68, 68, 0.06);
-        }
-      `}</style>
+  .menu-item.danger:hover {
+    background: rgba(239, 68, 68, 0.06);
+  }
+`}</style>
+
     </article>
   );
 }

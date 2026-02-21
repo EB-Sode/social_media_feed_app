@@ -144,14 +144,14 @@ export default function Settings({ onClose, onEditProfile }: SettingsProps) {
       </div>
 
       <style jsx>{`
-      .settings-overlay {
-        position: fixed;
-        inset: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: 999999; /* must be higher than your right sidebar */
-        background: #b1f5bf; /* solid so nothing shows behind */
-        overflow-y: auto;
+        .settings-overlay {
+          position: fixed;
+          inset: 0;
+          width: 100vw;
+          height: 100vh;
+          z-index: 999999;
+          background: var(--bg);
+          overflow-y: auto;
         }
 
         .settings-container {
@@ -159,16 +159,16 @@ export default function Settings({ onClose, onEditProfile }: SettingsProps) {
           max-width: 500px;
           margin: 0 auto;
           min-height: 100vh;
-          background: #b1f5bf;
+          background: var(--bg);
         }
 
         .settings-header {
-          background: #b1f5bf;
+          background: var(--bg);
           padding: 20px 24px;
           display: flex;
           align-items: center;
           gap: 16px;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+          border-bottom: 1px solid var(--border);
         }
 
         .back-button {
@@ -179,21 +179,21 @@ export default function Settings({ onClose, onEditProfile }: SettingsProps) {
           justify-content: center;
           background: transparent;
           border: none;
-          color: #1f2937;
+          color: var(--text);
           cursor: pointer;
           border-radius: 10px;
           transition: background 0.2s ease;
         }
 
         .back-button:hover {
-          background: rgba(31, 41, 55, 0.1);
+          background: var(--hover);
         }
 
         .settings-title {
           font-family: "Poppins", sans-serif;
           font-size: 24px;
           font-weight: 700;
-          color: #1f2937;
+          color: var(--text);
           margin: 0;
         }
 
@@ -213,7 +213,7 @@ export default function Settings({ onClose, onEditProfile }: SettingsProps) {
           font-family: "Poppins", sans-serif;
           font-size: 16px;
           font-weight: 600;
-          color: #1f2937;
+          color: var(--text);
           margin: 0 0 16px 0;
         }
 
@@ -225,8 +225,8 @@ export default function Settings({ onClose, onEditProfile }: SettingsProps) {
 
         .settings-item {
           width: 100%;
-          background: white;
-          border: none;
+          background: var(--surface);
+          border: 1px solid var(--border);
           padding: 16px;
           border-radius: 12px;
           display: flex;
@@ -237,7 +237,7 @@ export default function Settings({ onClose, onEditProfile }: SettingsProps) {
         }
 
         .settings-item:hover {
-          background: #f9fafb;
+          background: var(--surface-2);
           transform: translateX(4px);
         }
 
@@ -253,26 +253,30 @@ export default function Settings({ onClose, onEditProfile }: SettingsProps) {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: rgba(43, 135, 97, 0.1);
+          background: rgba(43, 135, 97, 0.12);
           border-radius: 8px;
-          color: #2b8761;
+          color: var(--brand);
+        }
+
+        html.dark .item-icon {
+          background: rgba(43, 135, 97, 0.18);
         }
 
         .item-label {
           font-family: "Inter", sans-serif;
           font-size: 15px;
           font-weight: 500;
-          color: #1f2937;
+          color: var(--text);
         }
 
         .chevron {
-          color: #9ca3af;
+          color: var(--muted);
           flex-shrink: 0;
         }
 
         /* Special styling for logout */
         .settings-section:last-child .settings-item:last-child .item-icon {
-          background: rgba(239, 68, 68, 0.1);
+          background: rgba(239, 68, 68, 0.12);
           color: #ef4444;
         }
 
@@ -294,6 +298,7 @@ export default function Settings({ onClose, onEditProfile }: SettingsProps) {
           }
         }
       `}</style>
+
     </div>
   );
 }

@@ -58,6 +58,42 @@ function getTokenExpMs(token: string): number | null {
   }
 }
 
+function getFriendlyAuthError(err: unknown): string {
+  // graphql-request ClientError usually has: err.response.errors[0].message
+  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const anyErr = err as any;
+  const gqlMsg =
+    anyErr?.response?.errors?.[0]?.message ||
+    anyErr?.response?.error ||
+    anyErr?.message ||
+    "";
+
+  const msg = String(gqlMsg).toLowerCase();
+
+  // Map known auth errors
+  if (msg.includes("invalid credentials")) return "Incorrect username or password.";
+  if (msg.includes("authentication required")) return "Please log in again.";
+  if (msg.includes("no refresh token")) return "Please log in again.";
+
+  // Network-ish errors
+  if (
+    msg.includes("failed to fetch") ||
+    msg.includes("network") ||
+    msg.includes("timeout") ||
+    msg.includes("ecconn") ||
+    msg.includes("502") ||
+    msg.includes("503") ||
+    msg.includes("504")
+  ) {
+    return "Network error. Please try again.";
+  }
+
+  // Fallback (never show raw JSON)
+  return "Login failed. Please try again.";
+}
+
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -196,6 +232,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+
   // Login
   const login = async (username: string, password: string) => {
     setLoading(true);
@@ -216,12 +253,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       router.push("/feed");
     } catch (err) {
       console.error("Login error:", err);
-      setError(err instanceof Error ? err.message : "Invalid credentials");
+
+      // ✅ clean message
+      setError(getFriendlyAuthError(err));
+
       throw err;
     } finally {
       setLoading(false);
     }
   };
+
 
   // Logout
   const logout = async () => {

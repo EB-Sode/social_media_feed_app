@@ -15,9 +15,7 @@ interface FollowersListProps {
 export default function FollowersList({
   userId,
   mode = "followers",
-  limit,
-  seeMoreHref,
-  showSeeMore = true,
+
   refreshKey = 0, // ✅
 }: FollowersListProps) {
   const { users, loading, error } = useFollowersList(userId, mode, refreshKey); // ✅
@@ -48,53 +46,57 @@ export default function FollowersList({
       </div>
 
       <style jsx>{`
-        .followers-container {
-          padding: 24px 16px;
-        }
+  .followers-container {
+    padding: 24px 16px;
+  }
 
-        .followers-header {
-          margin-bottom: 20px;
-        }
+  .followers-header {
+    margin-bottom: 20px;
+  }
 
-        .followers-title {
-          font-family: 'Poppins', sans-serif;
-          font-size: 18px;
-          font-weight: 600;
-          color: #1f2937;
-          text-align: center;
-          padding: 12px 16px;
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
+  .followers-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    text-align: center;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px var(--shadow);
+    border: 1px solid var(--border);
+  }
 
-        .followers-list {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
+  .followers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
 
-        .follower-item {
-          background: white;
-          padding: 14px 16px;
-          border-radius: 10px;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-          transition: all 0.2s ease;
-          cursor: pointer;
-        }
+  .follower-item {
+    background: var(--surface);
+    padding: 14px 16px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px var(--shadow);
+    border: 1px solid var(--border);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
 
-        .follower-item:hover {
-          transform: translateX(-4px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
+  .follower-item:hover {
+    transform: translateX(-4px);
+    box-shadow: 0 4px 12px var(--shadow);
+    background: var(--surface-2);
+  }
 
-        .follower-name {
-          font-family: 'Inter', sans-serif;
-          font-size: 14px;
-          font-weight: 500;
-          color: #1f2937;
-        }
-      `}</style>
+  .follower-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+`}</style>
+
     </div>
   );
 }

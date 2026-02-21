@@ -193,256 +193,276 @@ export default function PostCreateModal({
           </form>
         </div>
       </div>
-      <style jsx>{`
-        .modal-backdrop {
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.5);
-          z-index: 999;
-          animation: fadeIn 0.2s ease;
-        }
+      ```tsx
+    <style jsx>{`
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5); /* keep consistent dim */
+        z-index: 999;
+        animation: fadeIn 0.2s ease;
+      }
 
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
         }
+        to {
+          opacity: 1;
+        }
+      }
 
-        .modal-container {
-          position: fixed;
-          inset: 0;
-          z-index: 1000;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-          animation: slideUp 0.3s ease;
-        }
+      .modal-container {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: slideUp 0.3s ease;
+      }
 
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
         }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
 
-        .modal-content {
-          background: white;
-          border-radius: 16px;
-          width: 100%;
-          max-width: 600px;
-          max-height: 90vh;
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
+      .modal-content {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        width: 100%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 60px var(--shadow);
+        color: var(--text);
+      }
 
-        .modal-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 20px 24px;
-          border-bottom: 1px solid #e5e7eb;
-        }
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border);
+      }
 
-        .modal-header h2 {
-          font-size: 18px;
-          font-weight: 600;
-          margin: 0;
-        }
+      .modal-header h2 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text);
+      }
 
-        .close-btn {
-          width: 36px;
-          height: 36px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: transparent;
-          border: none;
-          cursor: pointer;
-          border-radius: 50%;
-          transition: background 0.2s;
-        }
+      .close-btn {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        border-radius: 50%;
+        transition: background 0.2s;
+        color: var(--text);
+      }
 
-        .close-btn:hover:not(:disabled) {
-          background: rgba(0, 0, 0, 0.05);
-        }
+      .close-btn:hover:not(:disabled) {
+        background: var(--hover);
+      }
 
-        .close-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
+      .close-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
 
-        form {
-          display: flex;
-          flex-direction: column;
-          overflow-y: auto;
-          flex: 1;
-        }
+      form {
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        flex: 1;
+      }
 
-        .user-info {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 20px 24px 16px;
-        }
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 20px 24px 16px;
+      }
 
-        .avatar {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #2b8761, #1f6949);
-          color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 700;
-          overflow: hidden;
-          flex-shrink: 0;
-        }
+      .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--brand), var(--brand-2));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        overflow: hidden;
+        flex-shrink: 0;
+      }
 
-        .avatar img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
+      .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
 
-        .username {
-          font-weight: 600;
-          font-size: 14px;
-        }
+      .username {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text);
+      }
 
-        .content-input {
-          width: 100%;
-          padding: 0 24px;
-          border: none;
-          outline: none;
-          font-size: 16px;
-          font-family: inherit;
-          resize: none;
-          line-height: 1.5;
-        }
+      .content-input {
+        width: 100%;
+        padding: 0 24px;
+        border: none;
+        outline: none;
+        font-size: 16px;
+        font-family: inherit;
+        resize: none;
+        line-height: 1.5;
+        color: var(--text);
+        background: transparent;
+      }
 
-        .content-input:disabled {
-          background: transparent;
-          cursor: not-allowed;
-        }
+      .content-input::placeholder {
+        color: var(--muted);
+      }
 
-        .image-preview {
-          margin: 16px 24px;
-          position: relative;
-          border-radius: 12px;
-          overflow: hidden;
-          background: #f3f4f6;
-        }
+      .content-input:disabled {
+        background: transparent;
+        cursor: not-allowed;
+        color: var(--muted);
+      }
 
-        .image-preview img {
-          width: 100%;
-          display: block;
-          max-height: 400px;
-          object-fit: contain;
-        }
+      .image-preview {
+        margin: 16px 24px;
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+      }
 
-        .remove-image-btn {
-          position: absolute;
-          top: 12px;
-          right: 12px;
-          width: 32px;
-          height: 32px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: rgba(0, 0, 0, 0.7);
-          color: white;
-          border: none;
-          border-radius: 50%;
-          cursor: pointer;
-          transition: background 0.2s;
-        }
+      .image-preview img {
+        width: 100%;
+        display: block;
+        max-height: 400px;
+        object-fit: contain;
+      }
 
-        .remove-image-btn:hover:not(:disabled) {
-          background: rgba(0, 0, 0, 0.9);
-        }
+      .remove-image-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.7); /* good as-is */
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
 
-        .modal-actions {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 16px 24px;
-          border-top: 1px solid #e5e7eb;
-          gap: 12px;
-        }
+      .remove-image-btn:hover:not(:disabled) {
+        background: rgba(0, 0, 0, 0.9);
+      }
 
-        .image-btn {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 16px;
-          background: transparent;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          cursor: pointer;
-          font-size: 14px;
-          font-weight: 500;
-          transition: all 0.2s;
-          color: #374151;
-        }
+      .modal-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+        border-top: 1px solid var(--border);
+        gap: 12px;
+        background: var(--surface);
+      }
 
-        .image-btn:hover:not(:disabled) {
-          background: #f9fafb;
-          border-color: #d1d5db;
-        }
+      .image-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
+        color: var(--text);
+      }
 
-        .image-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
+      .image-btn:hover:not(:disabled) {
+        background: var(--hover);
+      }
 
-        .submit-btn {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 24px;
-          background: #2b8761;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          font-size: 14px;
-          font-weight: 600;
-          transition: background 0.2s;
-        }
+      .image-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
 
-        .submit-btn:hover:not(:disabled) {
-          background: #1f6949;
-        }
+      .submit-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 24px;
+        background: var(--brand);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: background 0.2s;
+      }
 
-        .submit-btn:disabled {
-          background: #d1d5db;
-          cursor: not-allowed;
-        }
+      .submit-btn:hover:not(:disabled) {
+        background: var(--brand-2);
+      }
 
-        .submit-btn :global(.spinner) {
-          animation: spin 1s linear infinite;
-        }
+      .submit-btn:disabled {
+        background: #d1d5db; /* ok to keep as neutral disabled */
+        cursor: not-allowed;
+      }
 
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
+      html.dark .submit-btn:disabled {
+        background: rgba(148, 163, 184, 0.35); /* better disabled in dark */
+      }
+
+      .submit-btn :global(.spinner) {
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
         }
-      `}</style>
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    `}</style>
+```
+
     </>
   );
 }

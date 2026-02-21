@@ -111,179 +111,192 @@ export default function UsersDirectory({
         )}
       </div>
 
-      <style jsx>{`
-        .followers-container {
-          padding: 24px 16px;
-        }
+     <style jsx>{`
+      .followers-container {
+        padding: 24px 16px;
+        color: var(--text);
+      }
 
-        .followers-header {
-          margin-bottom: 20px;
-        }
+      .followers-header {
+        margin-bottom: 20px;
+      }
 
-        .followers-title {
-          font-family: "Poppins", sans-serif;
-          font-size: 18px;
-          font-weight: 600;
-          color: #1f2937;
-          text-align: center;
-          padding: 12px 16px;
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
+      .followers-title {
+        font-family: "Poppins", sans-serif;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text);
+        text-align: center;
+        padding: 12px 16px;
+        background: var(--surface);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        box-shadow: 0 2px 8px var(--shadow);
+      }
 
-        .followers-list {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
+      .followers-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
 
-        .follower-item {
-          background: white;
-          padding: 14px 16px;
-          border-radius: 10px;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-          transition: all 0.2s ease;
-          cursor: pointer;
+      .follower-item {
+        background: var(--surface);
+        padding: 14px 16px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        box-shadow: 0 2px 6px var(--shadow);
+        transition: all 0.2s ease;
+        cursor: pointer;
 
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-        }
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
 
-        .follower-item:hover {
-          transform: translateX(-4px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
+      .follower-item:hover {
+        transform: translateX(-4px);
+        box-shadow: 0 4px 12px var(--shadow);
+        background: var(--surface-2);
+      }
 
-        .user-left {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          min-width: 0;
-          text-decoration: none;
-          flex: 1;
-        }
+      .user-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+        text-decoration: none;
+        flex: 1;
+      }
 
-        .avatar {
-          height: 40px;
-          width: 40px;
-          border-radius: 9999px;
-          object-fit: cover;
-          flex-shrink: 0;
-          background: #f3f4f6;
-        }
+      .avatar {
+        height: 40px;
+        width: 40px;
+        border-radius: 9999px;
+        object-fit: cover;
+        flex-shrink: 0;
+        background: var(--surface-2);
+        border: 3px solid var(--border);
+      }
 
-        .user-info {
-          min-width: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-        }
+      .user-info {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
 
-        .follower-name {
-          font-family: "Inter", sans-serif;
-          font-size: 14px;
-          font-weight: 600;
-          color: #1f2937;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
+      .follower-name {
+        font-family: "Inter", sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
-        .bio-text {
-          font-family: "Inter", sans-serif;
-          font-size: 12px;
-          font-weight: 400;
-          color: #6b7280;
-          margin: 0;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          display: -webkit-box;
-          -webkit-line-clamp: 1;
-          -webkit-box-orient: vertical;
-        }
+      .bio-text {
+        font-family: "Inter", sans-serif;
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--muted);
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+      }
 
-        .stats-row {
-          margin-top: 4px;
-          display: flex;
-          gap: 12px;
-          font-family: "Inter", sans-serif;
-          font-size: 12px;
-          color: #4b5563;
-        }
+      .stats-row {
+        margin-top: 4px;
+        display: flex;
+        gap: 12px;
+        font-family: "Inter", sans-serif;
+        font-size: 12px;
+        color: var(--muted);
+        opacity: 0.95;
+      }
 
-        .follow-btn {
-          font-family: "Inter", sans-serif;
-          font-size: 12px;
-          font-weight: 600;
-          padding: 8px 12px;
-          border-radius: 10px;
-          border: 1px solid transparent;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          flex-shrink: 0;
-        }
+      .follow-btn {
+        font-family: "Inter", sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+      }
 
-        .btn-solid {
-          background: #70d686;
-          color: white;
-        }
+      .btn-solid {
+        background: var(--brand);
+        color: white;
+      }
 
-        .btn-solid:hover {
-          opacity: 0.9;
-        }
+      .btn-solid:hover {
+        background: var(--brand-2);
+      }
 
-        .btn-outline {
-          background: #70d686;
-          color: #111827;
-          border-color: rgba(17, 24, 39, 0.2);
-        }
+      .btn-outline {
+        background: transparent;
+        color: var(--text);
+        border-color: var(--border);
+      }
 
-        .btn-outline:hover {
-          background: rgba(17, 24, 39, 0.04);
-        }
+      .btn-outline:hover {
+        background: var(--hover);
+      }
 
-        .follow-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
+      .follow-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
 
-        .status-text {
-          text-align: center;
-          font-family: "Inter", sans-serif;
-          font-size: 13px;
-          font-weight: 500;
-          color: #6b7280;
-          padding: 8px 0;
-        }
+      .status-text {
+        text-align: center;
+        font-family: "Inter", sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--muted);
+        padding: 8px 0;
+      }
 
-        .error-text {
-          color: #dc2626;
-        }
+      .error-text {
+        color: #dc2626;
+      }
 
-        .see-more-item {
-          background: white;
-          padding: 14px 16px;
-          border-radius: 10px;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-          transition: all 0.2s ease;
-          cursor: pointer;
+      html.dark .error-text {
+        color: #fca5a5;
+      }
 
-          font-family: "Inter", sans-serif;
-          font-size: 14px;
-          font-weight: 600;
-          color: #111827;
-          text-decoration: none;
-          text-align: center;
-        }
+      .see-more-item {
+        background: var(--surface);
+        padding: 14px 16px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        box-shadow: 0 2px 6px var(--shadow);
+        transition: all 0.2s ease;
+        cursor: pointer;
 
-        .see-more-item:hover {
-          transform: translateX(-4px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-      `}</style>
+        font-family: "Inter", sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+        text-decoration: none;
+        text-align: center;
+      }
+
+      .see-more-item:hover {
+        transform: translateX(-4px);
+        box-shadow: 0 4px 12px var(--shadow);
+        background: var(--surface-2);
+      }
+    `}</style>
+
     </div>
   );
 }

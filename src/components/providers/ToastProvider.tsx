@@ -182,7 +182,7 @@ function ToastItem({
           color: white;
           padding: 16px;
           border-radius: 12px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          box-shadow: 0 4px 12px var(--shadow);
           display: flex;
           align-items: center;
           gap: 12px;
@@ -235,6 +235,7 @@ function ToastItem({
           background: rgba(255, 255, 255, 0.3);
         }
       `}</style>
+
     </div>
   );
 }
