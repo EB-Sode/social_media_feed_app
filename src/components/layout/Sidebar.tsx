@@ -8,7 +8,6 @@ import { Home, Bell, Search, Menu, LogOut, Moon, Sun } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useNotificationsLive } from "@/hooks/useNotifications";
 
-import Image from "next/image";
 import { imgSrc } from "@/lib/image";
 
 export default function Sidebar() {
@@ -56,7 +55,7 @@ export default function Sidebar() {
   return (
     <>
       <nav className="sidebar">
-        <div className="logo-container">
+        {/* <div className="logo-container">
           <div className="logo" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
               <Image
                 src="/RB.png"
@@ -66,7 +65,7 @@ export default function Sidebar() {
                 priority
               />
           </div>
-        </div>
+        </div> */}
 
         <div className="nav-items">
           <Link href={profileLink} className="nav-item" aria-label="Profile">
@@ -221,6 +220,7 @@ export default function Sidebar() {
           display: flex;
           flex-direction: column;
           gap: 24px;
+          margin-top: 40px;
           align-items: center;
         }
 

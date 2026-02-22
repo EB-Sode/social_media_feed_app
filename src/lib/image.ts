@@ -1,4 +1,4 @@
-// src/lib/image.ts
+
 const RAW_BASE =
   process.env.NEXT_PUBLIC_BACKEND_BASE || "http://localhost:8000";
 

@@ -1,5 +1,6 @@
 import type { Post } from "@/lib/queries";
 
+
 /**
  * UI representation of a post
  * This format is optimized for rendering in components

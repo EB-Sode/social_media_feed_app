@@ -75,6 +75,35 @@ export default function PostCard({
 
   const avatar = imgSrc(post.authorAvatar, "");
 
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    const postUrl = `${window.location.origin}/post/${String(post.id)}`;
+
+    const shareText = post.content
+      ? `${post.content}\n\n${postUrl}`
+      : postUrl;
+
+    try {
+      // Mobile native share if available
+      if (navigator.share) {
+        await navigator.share({
+          title: "Post",
+          text: shareText,
+        });
+        return;
+      }
+
+      // Desktop fallback: copy "text + link" but NOT inside the URL path
+      await navigator.clipboard.writeText(shareText);
+      alert("Copied!");
+    } catch (err) {
+      console.error("Share failed:", err);
+      alert("Could not share this post.");
+    }
+  };
+
+
   return (
     <article
       className="post-card"
@@ -157,7 +186,6 @@ export default function PostCard({
         </div>
       )}
       
-
       {/* Actions */}
       <div className="post-actions" onClick={(e) => e.stopPropagation()}>
         <div className="actions-left">
@@ -165,6 +193,7 @@ export default function PostCard({
             className={`icon-btn ${post.isLiked ? "liked" : ""}`}
             onClick={handleLike}
             aria-label={post.isLiked ? "Unlike post" : "Like post"}
+            type="button"
           >
             <Heart size={22} fill={post.isLiked ? "#ef4444" : "none"} />
           </button>
@@ -173,19 +202,39 @@ export default function PostCard({
             className="icon-btn"
             onClick={() => router.push(`/post/${post.id}`)}
             aria-label="View comments"
+            type="button"
           >
             <MessageCircle size={22} />
           </button>
 
-          <button className="icon-btn" aria-label="Share post">
+          <button
+            className="icon-btn"
+            onClick={handleShare}
+            aria-label="Share post"
+            type="button"
+          >
             <Send size={22} />
           </button>
         </div>
 
-        <button className="icon-btn" aria-label="Save post">
+        <button className="icon-btn" aria-label="Save post" type="button">
           <Bookmark size={22} />
         </button>
       </div>
+
+      {/* Counts row */}
+      <div className="post-meta" onClick={(e) => e.stopPropagation()}>
+        <span className="meta-item">{post.likes} likes</span>
+        <span className="dot">•</span>
+        <button
+          className="meta-link"
+          type="button"
+          onClick={() => router.push(`/post/${post.id}`)}
+        >
+          {post.commentsCount} comments
+        </button>
+      </div>
+
 
       <style jsx>{`
         .post-card {
@@ -296,6 +345,37 @@ export default function PostCard({
           display: flex;
           gap: 14px;
         }
+
+        .post-meta {
+          padding: 0 16px 14px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: var(--muted);
+          font-size: 13px;
+        }
+
+        .meta-item {
+          color: var(--muted);
+        }
+
+        .dot {
+          opacity: 0.6;
+        }
+
+        .meta-link {
+          background: none;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          color: var(--muted);
+          font-size: 13px;
+        }
+
+        .meta-link:hover {
+          text-decoration: underline;
+        }
+
 
         .icon-btn {
           background: none;

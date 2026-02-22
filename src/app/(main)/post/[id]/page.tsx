@@ -1,20 +1,69 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { usePost } from "@/hooks/usePost";
-import { ArrowLeft, Heart, Send } from "lucide-react";
+import { ArrowLeft, Heart, Send, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { imgSrc } from "@/lib/image";
+import { useAuth } from "@/context/AuthContext";
+import { DELETE_POST_MUTATION } from "@/lib/queries";
+import { getAuthenticatedClient } from "@/lib/graphql";
 
 export default function PostPage() {
   const params = useParams();
   const router = useRouter();
-  const postId = params.id as string;
+  const { user: currentUser } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
+  const postId = params.id as string;
   const { post, comments, loading, error, likePost, createComment } = usePost(postId);
   const [commentText, setCommentText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+
+useEffect(() => {
+    const onDocClick = (ev: MouseEvent) => {
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(ev.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
+  }, []);
+
+  const toggleMenu = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen((v) => !v);
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen(false);
+    router.push(`/post/${safePost.id}/edit`);
+  };
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen(false);
+
+    if (!confirm("Are you sure you want to delete this post?")) return;
+
+    try {
+      const client = getAuthenticatedClient();
+
+      await client.request(DELETE_POST_MUTATION, {
+        postId: String(safePost.id),
+      });
+
+      router.push("/"); // or "/feed"
+      router.refresh();
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+      alert("Failed to delete post");
+    }
+  };
 
   /**
    * Handle like button click
@@ -94,6 +143,11 @@ export default function PostPage() {
     );
   }
 
+  const safePost = post;
+  const isOwner =
+  currentUser?.id &&
+  String(currentUser.id) === String(safePost.author.id);
+
   return (
     <div className="post-container">
       {/* Header */}
@@ -102,35 +156,69 @@ export default function PostPage() {
         <button className="back-btn" onClick={() => router.back()}>
           <ArrowLeft size={24} />
         </button>
-        <h1>Post</h1>
+        <h1>Posts</h1>
         <div style={{ width: 40 }} /> {/* Spacer for centering */}
       </div>
 
       {/* Post Card */}
       <div className="post-card">
         {/* Author */}
-        <div className="author-section">
-          <Link href={`/profile/${post.author.id}`} className="avatar">
-            {post.author.profileImage ? (
-              <img src={post.author.profileImage} alt={post.author.username} />
-            ) : (
-              post.author.username.charAt(0).toUpperCase()
-            )}
-          </Link>
-
-          <div className="author-info">
-            <Link href={`/profile/${post.author.id}`}>
-              <h3 className="author-name">{post.author.username}</h3>
+        <div className="author-row">
+          <div className="author-section">
+            <Link href={`/profile/${post.author.id}`} className="avatar">
+              {post.author.profileImage ? (
+                <img
+                  src={imgSrc(post.author.profileImage)}
+                  alt={post.author.username}
+                  className="avatar-img"
+                  width={40}
+                  height={40}
+                />
+              ) : (
+                <span className="avatar-fallback">
+                  {post.author.username.charAt(0).toUpperCase()}
+                </span>
+              )}
             </Link>
-            <p className="timestamp">
-              {new Date(post.createdAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </p>
+
+            <div className="author-info">
+              <Link href={`/profile/${post.author.id}`}>
+                <h3 className="author-name">{post.author.username}</h3>
+              </Link>
+              <p className="timestamp">
+                {new Date(post.createdAt).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </p>
+            </div>
           </div>
+
+          {isOwner && (
+            <div className="menu-wrap" ref={menuRef}>
+              <button className="icon-btn" onClick={toggleMenu} aria-label="Post options">
+                <MoreHorizontal size={20} />
+              </button>
+
+              {menuOpen && (
+                <div className="menu" onClick={(e) => e.stopPropagation()}>
+                  <button className="menu-item" onClick={handleEdit}>
+                    <Pencil size={16} />
+                    Edit
+                  </button>
+
+                  <button className="menu-item danger" onClick={handleDelete}>
+                    <Trash2 size={16} />
+                    Delete
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
+
+        
 
         {/* Content */}
         {post.content && (
@@ -197,13 +285,19 @@ export default function PostPage() {
                 <Link href={`/profile/${comment.author.id}`} className="comment-avatar">
                   {comment.author.profileImage ? (
                     <img
-                      src={comment.author.profileImage}
+                      src={imgSrc(comment.author.profileImage)}
                       alt={comment.author.username}
+                      className="avatar-img"
+                      width={40}
+                      height={40}
                     />
                   ) : (
-                    comment.author.username.charAt(0).toUpperCase()
+                    <span className="avatar-fallback">
+                      {comment.author.username.charAt(0).toUpperCase()}
+                    </span>
                   )}
                 </Link>
+
 
                 <div className="comment-content">
                   <div className="comment-header">
@@ -282,28 +376,35 @@ export default function PostPage() {
         align-items: center;
         margin-bottom: 16px;
       }
-
       .avatar,
       .comment-avatar {
         width: 40px;
         height: 40px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--brand), var(--brand-2));
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
+        flex: 0 0 40px;
+        border-radius: 9999px;
         overflow: hidden;
+        display: block;
         text-decoration: none;
-        flex-shrink: 0;
+        background: var(--surface-2);
+        border: 3px solid var(--border);
       }
 
       .avatar img,
       .comment-avatar img {
         width: 100%;
         height: 100%;
+        border-radius: 9999px;
         object-fit: cover;
+        display: block;
+      }
+
+      .avatar-fallback {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        color: var(--text);
       }
 
       .author-info a {
@@ -392,6 +493,37 @@ export default function PostPage() {
         fill: #ef4444;
         stroke: #ef4444;
       }
+
+      .post-meta {
+        padding: 0 16px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .meta-item {
+        color: var(--muted);
+      }
+
+      .dot {
+        opacity: 0.6;
+      }
+
+      .meta-link {
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .meta-link:hover {
+        text-decoration: underline;
+      }
+
 
       .comments-section {
         background: var(--surface);
@@ -507,6 +639,73 @@ export default function PostPage() {
         padding: 40px 20px;
         color: var(--muted);
       }
+
+      .author-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .menu-wrap {
+        position: relative;
+      }
+
+      .icon-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        color: var(--text);
+      }
+
+      .icon-btn:hover {
+        background: var(--hover);
+      }
+
+      .menu {
+        position: absolute;
+        right: 0;
+        top: 40px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        box-shadow: 0 8px 20px var(--shadow);
+        border-radius: 12px;
+        overflow: hidden;
+        min-width: 160px;
+        z-index: 50;
+      }
+
+      .menu-item {
+        width: 100%;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--text);
+        text-align: left;
+      }
+
+      .menu-item:hover {
+        background: var(--hover);
+      }
+
+      .menu-item.danger {
+        color: #ef4444;
+      }
+
+      .menu-item.danger:hover {
+        background: rgba(239, 68, 68, 0.08);
+      }
+
     `}</style>
 
     </div>

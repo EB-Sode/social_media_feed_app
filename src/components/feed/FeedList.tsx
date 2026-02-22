@@ -47,7 +47,6 @@ export default function FeedList({ currentUser }: FeedListProps) {
   };
 
   const handleEditPost = (postId: string) => {
-    // simplest: route to an edit page
     router.push(`/post/${postId}/edit`);
 
     // OR open an edit modal you already have:

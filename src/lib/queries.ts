@@ -414,13 +414,22 @@ export const DELETE_POST_MUTATION = `
   }
 `;
 
+export const DELETE_ALL_USER_POSTS_MUTATION = `
+  mutation DeleteAllPosts {
+    deleteAllPosts {
+      success
+      message
+    }
+  }
+`;
+
 export const UPDATE_POST_MUTATION = `
-  mutation UpdatePost($postId: ID!, $content: String, $image: String) {
+  mutation UpdatePost($postId: ID!, $content: String, $image: Upload) {
     updatePost(postId: $postId, content: $content, image: $image) {
       post {
         id
         content
-        image
+        imageUrl
         updatedAt
         likesCount
         commentsCount
@@ -428,6 +437,8 @@ export const UPDATE_POST_MUTATION = `
     }
   }
 `;
+
+
 
 // ============================================================================
 // FOLLOW MUTATIONS

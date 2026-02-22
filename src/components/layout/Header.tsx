@@ -33,6 +33,7 @@ export default function Header({
               alt="App logo"
               width={60}
               height={60}
+              className="app-logo"
               priority
             />
         </div>
@@ -96,6 +97,12 @@ export default function Header({
   .header-left {
     display: flex;
     align-items: center;
+  }
+
+  .app-logo {
+    border-radius: 9999px;
+    object-fit: cover;
+    display: block;
   }
 
   .app-name {

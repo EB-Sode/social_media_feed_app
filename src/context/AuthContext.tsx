@@ -20,7 +20,6 @@ import {
 import {
   SIGNUP_MUTATION,
   LOGIN_MUTATION,
-  LOGOUT_MUTATION,
   REFRESH_TOKEN_MUTATION,
 } from "@/lib/queries";
 import type { User, AuthResponse } from "@/lib/queries";
@@ -283,21 +282,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
   // Logout
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
     setLoading(true);
+      clearTokens();          // remove access + refresh tokens
+      setUser(null); 
+      window.location.href = "/login";  // hard reset redirect
 
-    try {
-      const client = getAuthenticatedClient();
-      await client.request<{ logout: { success: boolean } }>(LOGOUT_MUTATION);
-    } catch (err) {
-      console.error("Logout API error:", err);
-    } finally {
-      clearTokens();
-      setUser(null);
-      setLoading(false);
-      router.push("/login");
-    }
   };
+
 
   const value: AuthContextType = useMemo(() => ({
     user,
