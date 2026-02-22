@@ -15,7 +15,7 @@ export default function LoginPage() {
   const [localError, setLocalError] = useState("");
 
   useEffect(() => {
-    warmupBackend(process.env.NEXT_PUBLIC_API_URL!);
+    warmupBackend(process.env.NEXT_PUBLIC_BACKEND_BASE!);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

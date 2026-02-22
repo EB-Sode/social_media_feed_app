@@ -8,6 +8,7 @@ import { imgSrc } from "@/lib/image";
 
 interface EditProfileProps {
   user: {
+    bio: string;
     username?: string;
     email?: string;
     location?: string;
@@ -19,6 +20,7 @@ interface EditProfileProps {
     username?: string;
     email?: string;
     location?: string;
+    bio?: string;
     profileImage?: File;
     coverImage?: File;
   }) => void;
@@ -28,7 +30,7 @@ export default function EditProfile({ user, onClose, onSave }: EditProfileProps)
   const [username, setUsername] = useState(user.username ?? "");
   const [email, setEmail] = useState(user.email ?? "");
   const [location, setLocation] = useState(user.location ?? "");
-
+  const [bio, setBio] = useState(user.bio ?? "");
   const [avatarFile, setAvatarFile] = useState<File | undefined>();
   const [coverFile, setCoverFile] = useState<File | undefined>();
 
@@ -37,9 +39,10 @@ export default function EditProfile({ user, onClose, onSave }: EditProfileProps)
     setUsername(user.username ?? "");
     setEmail(user.email ?? "");
     setLocation(user.location ?? "");
+    setBio(user.bio ?? ""); 
     setAvatarFile(undefined);
     setCoverFile(undefined);
-  }, [user.username, user.email, user.location]);
+  }, [user.username, user.email, user.location, user.bio]);
 
   // Create object URLs safely + cleanup
   const avatarPreview = useMemo(() => {
@@ -64,6 +67,7 @@ export default function EditProfile({ user, onClose, onSave }: EditProfileProps)
       username: username.trim() || undefined,
       email: email.trim() || undefined,
       location: location.trim() || undefined,
+      bio: bio.trim() || undefined,
       profileImage: avatarFile,
       coverImage: coverFile,
     });
@@ -152,6 +156,18 @@ export default function EditProfile({ user, onClose, onSave }: EditProfileProps)
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="City, Country"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="bio">Bio</label>
+              <textarea
+                id="bio"
+                className="form-input"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Tell us about yourself"
+                rows={4}
               />
             </div>
 

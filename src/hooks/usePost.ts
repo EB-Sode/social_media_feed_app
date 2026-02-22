@@ -13,9 +13,10 @@ import {
 /**
  * Hook for managing a single post and its comments
  * Used on individual post detail pages
- * 
+  
  * @param postId - The ID of the post to load
  */
+
 export function usePost(postId: string) {
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -33,6 +34,10 @@ export function usePost(postId: string) {
 
     setLoading(true);
     setError(null);
+
+    if (!/^\d+$/.test(postId)) {
+      throw new Error(`Invalid post id: ${postId}`);
+    }
 
     try {
       const client = getAuthenticatedClient();

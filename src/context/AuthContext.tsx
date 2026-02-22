@@ -20,7 +20,6 @@ import {
 import {
   SIGNUP_MUTATION,
   LOGIN_MUTATION,
-  LOGOUT_MUTATION,
   REFRESH_TOKEN_MUTATION,
 } from "@/lib/queries";
 import type { User, AuthResponse } from "@/lib/queries";
@@ -41,6 +40,7 @@ interface AuthContextType {
   signup: (variables: SignupVariables) => Promise<void>;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshMe: () => Promise<void>;
   refreshAccessToken: () => Promise<void>;
   clearError: () => void;
 }
@@ -135,6 +135,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw err;
     }
   };
+
+  const refreshMe = async () => {
+    try {
+      const token = getAccessToken();
+      if (!token) return;
+
+      const client = getAuthenticatedClient();
+      const data = await client.request<{ me: User }>(ME_QUERY);
+      setUser(data.me);
+    } catch (err) {
+      console.error("refreshMe failed:", err);
+      // optional: if you want to hard logout on auth failure:
+      // hardLogout();
+    }
+
+  };
+
 
   // ✅ Single initAuth effect (REMOVED the duplicate)
   useEffect(() => {
@@ -265,21 +282,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
   // Logout
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
     setLoading(true);
+      clearTokens();          // remove access + refresh tokens
+      setUser(null); 
+      window.location.href = "/login";  // hard reset redirect
 
-    try {
-      const client = getAuthenticatedClient();
-      await client.request<{ logout: { success: boolean } }>(LOGOUT_MUTATION);
-    } catch (err) {
-      console.error("Logout API error:", err);
-    } finally {
-      clearTokens();
-      setUser(null);
-      setLoading(false);
-      router.push("/login");
-    }
   };
+
 
   const value: AuthContextType = useMemo(() => ({
     user,
@@ -290,6 +300,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       refreshAccessToken,
+      refreshMe,
       clearError,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps

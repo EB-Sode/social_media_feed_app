@@ -10,6 +10,7 @@ import {
   UNFOLLOW_USER_MUTATION,
   DELETE_POST_MUTATION,
   UPDATE_PROFILE_MUTATION,
+  UPDATE_USER_IMAGES, 
   type User,
   type Post,
   type FollowStats,
@@ -63,14 +64,10 @@ export function useProfile(userId: string) {
     loadProfile();
   }, [loadProfile]);
 
-  /**
-   * Update profile
-   * Supports: bio, email, profileImage (as URL string)
-   * Does NOT support: username, location, coverImage (not in backend mutation)
-   */
   const updateProfile = async (input: {
     bio?: string;
     email?: string;
+    location?: string;
     profileImage?: string;  // URL string, not File
   }) => {
     try {
@@ -100,6 +97,79 @@ export function useProfile(userId: string) {
       throw err;
     }
   };
+
+  const updateUserImages = async (input: { profile?: File; cover?: File }) => {
+    const profile = input.profile ?? null;
+    const cover = input.cover ?? null;
+
+    // nothing to upload
+    if (!profile && !cover) return null;
+
+    // IMPORTANT: your GraphQL endpoint (ends with /graphql/)
+    const endpoint = process.env.NEXT_PUBLIC_API_URL!;
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+
+    const operations = {
+      query: UPDATE_USER_IMAGES,
+      variables: {
+        profile: null,
+        cover: null,
+      },
+    };
+
+    const map: Record<string, string[]> = {};
+    const form = new FormData();
+
+    form.append("operations", JSON.stringify(operations));
+
+    let i = 0;
+    if (profile) {
+      map[String(i)] = ["variables.profile"];
+      form.append(String(i), profile);
+      i++;
+    }
+    if (cover) {
+      map[String(i)] = ["variables.cover"];
+      form.append(String(i), cover);
+      i++;
+    }
+
+    form.append("map", JSON.stringify(map));
+
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      body: form,
+    });
+
+    const json = await res.json();
+
+    if (!res.ok || json.errors) {
+      throw new Error(json.errors?.[0]?.message ?? "Image upload failed");
+    }
+
+    const payload = json.data?.updateUserImages;
+    if (!payload?.success) {
+      throw new Error(payload?.message ?? "Image upload failed");
+    }
+
+    // Update local user state (merge new fields)
+    setUser((prev) =>
+      prev
+        ? {
+            ...prev,
+            profileImage: payload.profileImage ?? prev.profileImage,
+            coverImage: payload.coverImage ?? prev.coverImage,
+          }
+        : prev
+    );
+    console.log("updateUserImages payload:", payload);
+
+
+    return payload;
+  };
+
 
   const followUser = async () => {
     if (!userId || !followStats) return;
@@ -173,5 +243,6 @@ export function useProfile(userId: string) {
     unfollowUser,
     deletePost,
     updateProfile,
+    updateUserImages,
   };
 }

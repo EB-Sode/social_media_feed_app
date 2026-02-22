@@ -414,15 +414,22 @@ export const DELETE_POST_MUTATION = `
   }
 `;
 
-export const UPDATE_POST_MUTATION = `
-  mutation UpdatePost($postId: ID!, $content: String, $image: String) {
-    updatePost(postId: $postId, content: $content, image: $image) {
+export const DELETE_ALL_USER_POSTS_MUTATION = `
+  mutation DeleteAllPosts {
+    deleteAllPosts {
       success
       message
+    }
+  }
+`;
+
+export const UPDATE_POST_MUTATION = `
+  mutation UpdatePost($postId: ID!, $content: String, $image: Upload) {
+    updatePost(postId: $postId, content: $content, image: $image) {
       post {
         id
         content
-        image
+        imageUrl
         updatedAt
         likesCount
         commentsCount
@@ -430,6 +437,8 @@ export const UPDATE_POST_MUTATION = `
     }
   }
 `;
+
+
 
 // ============================================================================
 // FOLLOW MUTATIONS
@@ -478,19 +487,17 @@ export const MARK_ALL_NOTIFICATIONS_READ_MUTATION = `
 // PROFILE QUERIES
 // =====================
 
-
-
-// Replace in lib/queries.ts
-
 export const UPDATE_PROFILE_MUTATION = `
   mutation UpdateProfile(
     $bio: String
     $email: String
+    $location: String
     $profileImage: String
   ) {
     updateProfile(
       bio: $bio
       email: $email
+      location: $location
       profileImage: $profileImage
     ) {
       user {
@@ -507,6 +514,17 @@ export const UPDATE_PROFILE_MUTATION = `
         followingCount
         postsCount
       }
+    }
+  }
+`;
+
+export const UPDATE_USER_IMAGES = `
+  mutation UpdateUserImages($profile: Upload, $cover: Upload) {
+    updateUserImages(profile: $profile, cover: $cover) {
+      success
+      message
+      profileImage
+      coverImage
     }
   }
 `;
