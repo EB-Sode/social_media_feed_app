@@ -26,22 +26,21 @@ export default function OnboardingPage() {
         title: "Welcome",
         subtitle: "we’re glad that\nyou are here",
         cta: "Lets get started",
-        // replace with your own image in /public if you have one
-        bgImage: "/plant.jpg",
+        bgImage: "/plant.png",
         logoText: "RB",
       },
       {
         title: "Connect",
         subtitle: "follow friends\nand creators",
         cta: "Continue",
-        bgImage: "/plant.jpg",
+        bgImage: "/plant.png",
         logoText: "RB",
       },
       {
         title: "Share",
         subtitle: "post photos\nand updates",
         cta: "Continue",
-        bgImage: "/plant.jpg",
+        bgImage: "/plant.png",
         logoText: "RB",
       },
     ],
@@ -122,7 +121,8 @@ export default function OnboardingPage() {
           <Image
             src={slide.bgImage}
             alt="Onboarding"
-            fill
+            width={800}
+            height={800}
             className="bg"
             priority
             />
@@ -301,8 +301,9 @@ export default function OnboardingPage() {
     }
 
     .right {
-        position: relative;
-        overflow: hidden;
+      position: relative;
+      overflow: hidden;
+      height: 100%;
     }
 
     .bg {
