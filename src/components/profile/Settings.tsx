@@ -59,7 +59,7 @@ export default function Settings({ onClose, onEditProfile }: SettingsProps) {
   const handleAddAccount = () => {
     onClose();
     // simplest: go to login (or account switcher page later)
-    router.push("/login");
+    router.push("/signup");
   };
 
   const settingsSections = [

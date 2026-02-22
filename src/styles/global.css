@@ -229,3 +229,8 @@ button {
 .hover-surface:hover {
   background: var(--hover);
 }
+
+img {
+  height: revert;
+  width: revert;
+}

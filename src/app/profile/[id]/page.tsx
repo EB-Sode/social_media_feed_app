@@ -25,6 +25,8 @@ export default function ProfilePage() {
     followStats,
     loading,
     error,
+    deleteAllPosts,
+    createPostWithImage,
     followUser,
     unfollowUser,
     updateProfile,
@@ -38,6 +40,24 @@ export default function ProfilePage() {
   const [showEditProfile, setShowEditProfile] = useState(false);
 
   const isMe = currentUser?.id === userId;
+  const likedFromThisProfile = posts.filter((p: any) => p.isLikedByUser);
+
+  const [uploading, setUploading] = useState(false);
+
+  const handlePhotoUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      await createPostWithImage({ content: "", image: file });
+      setActiveTab("posts");
+      // optional: refetch() if your create mutation doesn't return full post
+      // await refetch();
+    } catch (e) {
+      console.error(e);
+      alert("Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleFollowToggle = async () => {
     if (!followStats) return;
@@ -51,37 +71,34 @@ export default function ProfilePage() {
     }
   };
 
-const handleProfileSave = async (updated: {
-  username?: string;
-  email?: string;
-  location?: string;
-  profileImage?: File;
-  coverImage?: File;
-}) => {
-  try {
-    await updateProfile({
-      email: updated.email,
-      bio: user?.bio ?? undefined,
-      location: updated.location ?? undefined,
-    });
+  const handleProfileSave = async (updated: {
+    username?: string;
+    email?: string;
+    location?: string;
+    profileImage?: File;
+    coverImage?: File;
+  }) => {
+    try {
+      await updateProfile({
+        email: updated.email,
+        bio: user?.bio ?? undefined,
+        location: updated.location ?? undefined,
+      });
 
-    // 2) Upload files (multipart Upload)
-    await updateUserImages({
-      profile: updated.profileImage,
-      cover: updated.coverImage,
-    });
+      await updateUserImages({
+        profile: updated.profileImage,
+        cover: updated.coverImage,
+      });
 
-    await Promise.all([refetch(), refreshMe()]);
-    
+      await Promise.all([refetch(), refreshMe()]);
 
-    setShowEditProfile(false);
-    alert("Profile updated successfully!");
-  } catch (err) {
-    console.error("Failed to save profile:", err);
-    alert("Failed to save profile. Please try again.");
-  }
-};
-
+      setShowEditProfile(false);
+      alert("Profile updated successfully!");
+    } catch (err) {
+      console.error("Failed to save profile:", err);
+      alert("Failed to save profile. Please try again.");
+    }
+  };
 
   if (loading)
     return (
@@ -99,6 +116,8 @@ const handleProfileSave = async (updated: {
       </>
     );
 
+  const photoPosts = posts.filter((p: any) => !!p.imageUrl);
+
   return (
     <>
       <Header />
@@ -112,8 +131,7 @@ const handleProfileSave = async (updated: {
               alt="Cover"
               className="cover-img"
             />
-            
-            {/* Green blob overlay */}
+
             <svg className="blob-overlay" viewBox="0 0 1200 400" preserveAspectRatio="none">
               <path
                 d="M0,350 Q200,250 400,300 Q600,350 800,280 Q1000,210 1200,280 L1200,400 L0,400 Z"
@@ -122,9 +140,7 @@ const handleProfileSave = async (updated: {
             </svg>
           </div>
 
-          {/* Content Section */}
           <div className="content-section">
-            {/* Left Sidebar */}
             <div className="left-sidebar">
               <ProfileSidebar
                 firstPostId={posts?.[0]?.id}
@@ -134,44 +150,34 @@ const handleProfileSave = async (updated: {
               />
             </div>
 
-            {/* Profile Info */}
             <div className="profile-info">
-              {/* Avatar */}
               <div className="avatar-container">
-                <img
-                  src={imgSrc(user.profileImage)}
-                  alt={user.username}
-                  className="avatar-img"
-                />
+                <img src={imgSrc(user.profileImage)} alt={user.username} className="avatar-img" />
               </div>
 
-              {/* Name & Bio */}
               <h1 className="profile-name">{user.username}</h1>
               <p className="profile-role">{user.bio || "Interior designer"}</p>
 
-              {/* Location */}
               <p className="profile-location">
                 <MapPin size={18} strokeWidth={2} />
                 {user.location || "Lagos, Nigeria"}
               </p>
 
-              {/* Stats */}
               <div className="stats-container">
                 <div className="stat-item">
-                  <div className="stat-value">{followStats?.followersCount ?? 122}</div>
+                  <div className="stat-value">{followStats?.followersCount ?? 0}</div>
                   <div className="stat-label">followers</div>
                 </div>
                 <div className="stat-item">
-                  <div className="stat-value">{followStats?.followingCount ?? 67}</div>
+                  <div className="stat-value">{followStats?.followingCount ?? 0}</div>
                   <div className="stat-label">following</div>
                 </div>
                 <div className="stat-item">
-                  <div className="stat-value">{posts.length > 0 ? posts.length : "37K"}</div>
-                  <div className="stat-label">likes</div>
+                  <div className="stat-value">{posts.length}</div>
+                  <div className="stat-label">posts</div>
                 </div>
               </div>
 
-              {/* Edit/Follow Button */}
               {isMe ? (
                 <button className="action-btn" onClick={() => setShowEditProfile(true)}>
                   Edit profile
@@ -195,9 +201,7 @@ const handleProfileSave = async (updated: {
               )}
             </div>
 
-            {/* Photos Grid */}
             <div className="photos-section">
-              {/* Tabs */}
               <div className="tabs-container">
                 <button
                   className={`tab-btn ${activeTab === "photos" ? "active" : ""}`}
@@ -215,38 +219,114 @@ const handleProfileSave = async (updated: {
 
                 <button
                   className={`tab-btn ${activeTab === "likes" ? "active" : ""}`}
-                  onClick={() => setActiveTab("likes")}
+                  onClick={() => {
+                    setActiveTab("likes");
+                  }}
                 >
                   Likes
                 </button>
               </div>
 
-
-              {/* Content */}
+              {/* CONTENT */}
               {activeTab === "photos" ? (
-                <div className="photos-grid">
-                  {posts.filter((p: any) => !!p.image).length === 0 ? (
-                    <div className="empty-state">No photos yet</div>
-                  ) : (
-                    posts
-                      .filter((p: any) => !!p.image)
-                      .map((p: any) => (
+                                <>
+                  {isMe && (
+                    <div className="toolbar">
+                      <label className="action-btn mini" style={{ cursor: "pointer" }}>
+                        {uploading ? "Uploading..." : "Upload Photo"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: "none" }}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handlePhotoUpload(file);
+                          }}
+                        />
+                      </label>
+                    </div>
+                  )}
+
+                  {/* <div className="photos-grid">
+                    {photoPosts.length === 0 ? (
+                      <div className="empty-state">No photos yet</div>
+                    ) : (
+                      photoPosts.map((p: any) => (
                         <Link key={p.id} href={`/post/${p.id}`} className="photo-item">
-                          <img src={imgSrc(p.image, "")} alt="" />
+                          <img src={imgSrc(p.imageUrl, "")} alt="" />
                         </Link>
                       ))
-                  )}
+                    )}
+                  </div> */}
+                  <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gridAutoRows: "200px",
+                    gap: "4px",
+                    padding: "4px",
+                  }}
+                >
+                  {photoPosts.map((p: any) => (
+                    <Link
+                      key={p.id}
+                      href={`/post/${p.id}`}
+                      style={{
+                        position: "relative",
+                        display: "block",
+                        height: "200px",
+                        overflow: "hidden",
+                        borderRadius: "8px",
+                        border: "1px solid var(--border)",
+                      }}
+                    >
+                      <img
+                        src={imgSrc(p.imageUrl, "")}
+                        alt=""
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    </Link>
+                  ))}
                 </div>
+                </>
+
               ) : activeTab === "posts" ? (
                 <div className="posts-list">
+                  {isMe && posts.length > 0 && (
+                    <div className="toolbar right">
+                      <button
+                        className="action-btn danger mini"
+                        onClick={async () => {
+                          const ok = confirm("Delete ALL your posts? This cannot be undone.");
+                          if (!ok) return;
+                          try {
+                            await deleteAllPosts();
+                          } catch (e) {
+                            console.error(e);
+                            alert("Failed to delete posts");
+                          }
+                        }}
+                      >
+                        Delete all posts
+                      </button>
+                    </div>
+                  )}
+
                   {posts.length === 0 ? (
                     <div className="empty-state">No posts yet</div>
                   ) : (
                     posts.map((p: any) => (
                       <Link key={p.id} href={`/post/${p.id}`} className="post-row">
-                        {p.image ? (
+                        {p.imageUrl ? (
                           <div className="post-thumb">
-                            <img src={imgSrc(p.image, "")} alt="" />
+                            <img src={imgSrc(p.imageUrl, "")} alt="" />
                           </div>
                         ) : (
                           <div className="post-thumb placeholder" />
@@ -262,10 +342,32 @@ const handleProfileSave = async (updated: {
                     ))
                   )}
                 </div>
-              ) : (
-                <div className="empty-state">No liked posts yet</div>
-              )}
+                  ) : (
+                    <div className="posts-list">
+                      {likedFromThisProfile.length === 0 ? (
+                        <div className="empty-state">No liked posts here yet</div>
+                      ) : (
+                        likedFromThisProfile.map((p: any) => (
+                          <Link key={p.id} href={`/post/${p.id}`} className="post-row">
+                            {p.imageUrl ? (
+                              <div className="post-thumb">
+                                <img src={imgSrc(p.imageUrl, "")} alt="" />
+                              </div>
+                            ) : (
+                              <div className="post-thumb placeholder" />
+                            )}
 
+                            <div className="post-body">
+                              <p className="post-text">{p.content || "No text"}</p>
+                              <p className="post-meta">
+                                {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ""}
+                              </p>
+                            </div>
+                          </Link>
+                        ))
+                      )}
+                    </div>
+                  )}
             </div>
           </div>
         </div>
@@ -315,7 +417,6 @@ const handleProfileSave = async (updated: {
             position: relative;
           }
 
-          /* ===== COVER SECTION ===== */
           .cover-section {
             position: relative;
             width: 100%;
@@ -338,7 +439,6 @@ const handleProfileSave = async (updated: {
             pointer-events: none;
           }
 
-          /* ===== CONTENT SECTION (GRID) ===== */
           .content-section {
             max-width: 1200px;
             margin: 0 auto;
@@ -354,15 +454,14 @@ const handleProfileSave = async (updated: {
             border-top: 1px solid var(--border);
           }
 
-          /* ===== LEFT SIDEBAR ===== */
           .left-sidebar {
             padding: 40px 0;
             display: flex;
             flex-direction: column;
             align-items: center;
+            border-right: 2px solid var(--border)
           }
 
-          /* ===== PROFILE INFO ===== */
           .profile-info {
             display: flex;
             flex-direction: column;
@@ -420,7 +519,6 @@ const handleProfileSave = async (updated: {
             color: var(--text);
           }
 
-          /* ===== STATS ===== */
           .stats-container {
             display: flex;
             gap: 40px;
@@ -452,7 +550,6 @@ const handleProfileSave = async (updated: {
             opacity: 0.9;
           }
 
-          /* ===== ACTION BUTTON ===== */
           .action-btn {
             background: var(--brand);
             color: white;
@@ -492,7 +589,15 @@ const handleProfileSave = async (updated: {
             transform: none;
           }
 
-          /* ===== PHOTOS/POSTS SECTION ===== */
+          .action-btn.mini {
+            padding: 10px 14px;
+            font-size: 13px;
+          }
+
+          .action-btn.danger {
+            background: #ef4444;
+          }
+
           .photos-section {
             background: var(--bg);
             border-radius: 20px;
@@ -500,7 +605,6 @@ const handleProfileSave = async (updated: {
             border: 1px solid var(--border);
           }
 
-          /* ===== TABS ===== */
           .tabs-container {
             display: flex;
             justify-content: center;
@@ -545,35 +649,46 @@ const handleProfileSave = async (updated: {
             border-radius: 2px;
           }
 
-          /* ===== PHOTOS GRID ===== */
+          .toolbar {
+            padding: 12px 24px;
+            display: flex;
+            justify-content: flex-start;
+          }
+
           .photos-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            padding: 24px;
+            grid-auto-rows: 200px; /* ← fixed row height, all cells equal */
+            gap: 4px;
+            padding: 4px;
           }
 
           .photo-item {
-            aspect-ratio: 1;
-            border-radius: 16px;
+            position: relative;
+            width: 100%;
+            height: 100%; /* ← fills the fixed grid row */
+            border-radius: 8px;
             overflow: hidden;
             background: var(--surface-2);
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            display: block;
             border: 1px solid var(--border);
+            display: block;
+            min-width: 0;
+          }
+
+          .photo-item img {
+            position: absolute !important;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            object-position: center;
+            display: block;
           }
 
           .photo-item:hover {
             transform: scale(1.02);
             box-shadow: 0 8px 20px var(--shadow);
-          }
-
-          .photo-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
           }
 
           .empty-state {
@@ -584,7 +699,6 @@ const handleProfileSave = async (updated: {
             font-size: 16px;
           }
 
-          /* ===== POSTS LIST ===== */
           .posts-list {
             display: flex;
             flex-direction: column;
@@ -663,7 +777,6 @@ const handleProfileSave = async (updated: {
             color: var(--muted);
           }
 
-          /* ===== RESPONSIVE ===== */
           @media (max-width: 1024px) {
             .content-section {
               grid-template-columns: 1fr;
@@ -722,10 +835,13 @@ const handleProfileSave = async (updated: {
               gap: 8px;
               padding: 16px;
             }
+
+            .action-btn {
+              padding: 12px 18px;
+              font-size: 14px;
+            }
           }
-
         `}</style>
-
       </div>
     </>
   );

@@ -9,8 +9,11 @@ import {
   FOLLOW_USER_MUTATION,
   UNFOLLOW_USER_MUTATION,
   DELETE_POST_MUTATION,
+  DELETE_ALL_USER_POSTS_MUTATION,
   UPDATE_PROFILE_MUTATION,
-  UPDATE_USER_IMAGES, 
+  UPDATE_USER_IMAGES,
+  GET_LIKED_POSTS_BY_USER,
+  CREATE_POST_MUTATION,
   type User,
   type Post,
   type FollowStats,
@@ -19,8 +22,10 @@ import {
 export function useProfile(userId: string) {
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [likedPosts, setLikedPosts] = useState<Post[]>([]);
   const [followStats, setFollowStats] = useState<FollowStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [likesLoading, setLikesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadProfile = useCallback(async () => {
@@ -60,6 +65,31 @@ export function useProfile(userId: string) {
     }
   }, [userId]);
 
+  const loadLikedPosts = useCallback(async () => {
+    if (!userId) return;
+
+    setLikesLoading(true);
+    try {
+      const client = getAuthenticatedClient();
+
+      const res = await client.request<{
+        likes: Array<{ id: string; post: Post | null }>;
+      }>(GET_LIKED_POSTS_BY_USER, { userId });
+
+      const postsFromLikes =
+        (res.likes ?? [])
+          .map((l) => l.post)
+          .filter(Boolean) as Post[];
+
+      setLikedPosts(postsFromLikes);
+    } catch (err) {
+      console.error("Failed to load liked posts:", err);
+      setLikedPosts([]);
+    } finally {
+      setLikesLoading(false);
+    }
+  }, [userId]);
+
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
@@ -68,29 +98,29 @@ export function useProfile(userId: string) {
     bio?: string;
     email?: string;
     location?: string;
-    profileImage?: string;  // URL string, not File
+    profileImage?: string;
   }) => {
     try {
       const client = getAuthenticatedClient();
 
-      // Only send fields that are defined
       const variables: {
         bio?: string;
         email?: string;
+        location?: string;
         profileImage?: string;
       } = {};
-      
+
       if (input.bio !== undefined) variables.bio = input.bio;
       if (input.email !== undefined) variables.email = input.email;
+      if (input.location !== undefined) variables.location = input.location;
       if (input.profileImage !== undefined) variables.profileImage = input.profileImage;
 
-      const res = await client.request<{ 
-        updateProfile: { user: User } 
-      }>(UPDATE_PROFILE_MUTATION, variables);
+      const res = await client.request<{ updateProfile: { user: User } }>(
+        UPDATE_PROFILE_MUTATION,
+        variables
+      );
 
-      // Update local state with backend response
       setUser(res.updateProfile.user);
-
       return res.updateProfile.user;
     } catch (err) {
       console.error("Failed to update profile:", err);
@@ -101,26 +131,19 @@ export function useProfile(userId: string) {
   const updateUserImages = async (input: { profile?: File; cover?: File }) => {
     const profile = input.profile ?? null;
     const cover = input.cover ?? null;
-
-    // nothing to upload
     if (!profile && !cover) return null;
 
-    // IMPORTANT: your GraphQL endpoint (ends with /graphql/)
     const endpoint = process.env.NEXT_PUBLIC_API_URL!;
     const token =
       typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 
     const operations = {
       query: UPDATE_USER_IMAGES,
-      variables: {
-        profile: null,
-        cover: null,
-      },
+      variables: { profile: null, cover: null },
     };
 
     const map: Record<string, string[]> = {};
     const form = new FormData();
-
     form.append("operations", JSON.stringify(operations));
 
     let i = 0;
@@ -154,7 +177,6 @@ export function useProfile(userId: string) {
       throw new Error(payload?.message ?? "Image upload failed");
     }
 
-    // Update local user state (merge new fields)
     setUser((prev) =>
       prev
         ? {
@@ -164,19 +186,60 @@ export function useProfile(userId: string) {
           }
         : prev
     );
-    console.log("updateUserImages payload:", payload);
-
 
     return payload;
   };
 
+  // ✅ Create post with Upload (uses same multipart approach)
+  const createPostWithImage = async (input: { content: string; image?: File }) => {
+    const endpoint = process.env.NEXT_PUBLIC_API_URL!;
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+
+    const operations = {
+      query: CREATE_POST_MUTATION,
+      variables: {
+        content: input.content,
+        image: null,
+      },
+    };
+
+    const map: Record<string, string[]> = {};
+    const form = new FormData();
+    form.append("operations", JSON.stringify(operations));
+
+    if (input.image) {
+      map["0"] = ["variables.image"];
+      form.append("0", input.image);
+    }
+
+    form.append("map", JSON.stringify(map));
+
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      body: form,
+    });
+
+    const json = await res.json();
+
+    if (!res.ok || json.errors) {
+      throw new Error(json.errors?.[0]?.message ?? "Create post failed");
+    }
+
+    const createdPost = json.data?.createPost?.post;
+    if (createdPost) {
+      setPosts((prev) => [createdPost, ...prev]);
+    }
+
+    return createdPost as Post | null;
+  };
 
   const followUser = async () => {
     if (!userId || !followStats) return;
     const previousStats = { ...followStats };
 
     try {
-      // Optimistic update
       setFollowStats({
         ...followStats,
         isFollowing: true,
@@ -187,7 +250,6 @@ export function useProfile(userId: string) {
       await client.request(FOLLOW_USER_MUTATION, { userId });
     } catch (err) {
       console.error(err);
-      // Rollback on error
       setFollowStats(previousStats);
       throw err;
     }
@@ -198,7 +260,6 @@ export function useProfile(userId: string) {
     const previousStats = { ...followStats };
 
     try {
-      // Optimistic update
       setFollowStats({
         ...followStats,
         isFollowing: false,
@@ -209,7 +270,6 @@ export function useProfile(userId: string) {
       await client.request(UNFOLLOW_USER_MUTATION, { userId });
     } catch (err) {
       console.error(err);
-      // Rollback on error
       setFollowStats(previousStats);
       throw err;
     }
@@ -219,14 +279,27 @@ export function useProfile(userId: string) {
     const previousPosts = [...posts];
 
     try {
-      // Optimistic update
       setPosts((prev) => prev.filter((p) => p.id !== postId));
-      
+
       const client = getAuthenticatedClient();
       await client.request(DELETE_POST_MUTATION, { postId });
     } catch (err) {
       console.error(err);
-      // Rollback on error
+      setPosts(previousPosts);
+      throw err;
+    }
+  };
+
+  // ✅ Delete ALL posts (backend mutation exists!)
+  const deleteAllPosts = async () => {
+    const previousPosts = [...posts];
+
+    try {
+      setPosts([]);
+      const client = getAuthenticatedClient();
+      await client.request(DELETE_ALL_USER_POSTS_MUTATION);
+    } catch (err) {
+      console.error(err);
       setPosts(previousPosts);
       throw err;
     }
@@ -235,14 +308,19 @@ export function useProfile(userId: string) {
   return {
     user,
     posts,
+    likedPosts,
     followStats,
     loading,
+    likesLoading,
     error,
     refetch: loadProfile,
+    refetchLikes: loadLikedPosts,
     followUser,
     unfollowUser,
     deletePost,
+    deleteAllPosts,
     updateProfile,
     updateUserImages,
+    createPostWithImage,
   };
 }

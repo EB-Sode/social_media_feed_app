@@ -387,6 +387,24 @@ export const LIKE_POST_MUTATION = `
 
 `;
 
+export const GET_LIKED_POSTS_BY_USER = `
+  query GetLikedPostsByUser($userId: ID!) {
+    likes(userId: $userId) {
+      id
+      content
+      imageUrl
+      createdAt
+      likesCount
+      commentsCount
+      author {
+        id
+        username
+        profileImage
+      }
+    }
+  }
+`;
+
 export const CREATE_COMMENT_MUTATION = `
   mutation CreateComment($postId: ID!, $content: String!) {
     createComment(postId: $postId, content: $content) {

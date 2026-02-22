@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Settings as SettingsIcon } from "lucide-react";
+import { Settings as SettingsIcon, Menu, LogOut, Moon, Sun} from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 type ProfileSidebarProps = {
   /** route user to first post when clicked */
@@ -23,15 +24,43 @@ export default function ProfileSidebar({
 }: ProfileSidebarProps) {
   const router = useRouter();
 
+  const { isAuthenticated, logout } = useAuth();
+
+  const [menuOpen, setMenuOpen] = useState(false);        // small dropdown
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+
+    useEffect(() => {
+      const saved = (localStorage.getItem("theme") as "light" | "dark" | null) ?? "light";
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTheme(saved);
+      document.documentElement.classList.toggle("dark", saved === "dark");
+    }, []);
+  
+    useEffect(() => {
+      function onDocClick(e: MouseEvent) {
+        const target = e.target as HTMLElement;
+        // close if click outside the footer menu area
+        if (!target.closest(".nav-footer")) setMenuOpen(false);
+      }
+  
+      if (menuOpen) document.addEventListener("mousedown", onDocClick);
+      return () => document.removeEventListener("mousedown", onDocClick);
+    }, [menuOpen]);
+  
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    document.documentElement.classList.toggle("dark", next === "dark");
+    localStorage.setItem("theme", next);
+    setMenuOpen(false);
+  };
+
+
   return (
     <div className="sidebar-nav">
-      {/* HOME */}
-      <button
-        className="nav-icon"
-        aria-label="Home"
-        onClick={() => router.push(homeHref)}
-        type="button"
-      >
+  <div className="nav-top">
+    <button className="nav-icon" aria-label="Home" onClick={() => router.push(homeHref)} type="button">
         <svg
           width="22"
           height="22"
@@ -47,14 +76,9 @@ export default function ProfileSidebar({
       </button>
 
       {/* SETTINGS → overlay */}
-      <button
-        className="nav-icon"
-        aria-label="Settings"
-        onClick={onOpenSettings}
-        type="button"
-      >
-        <SettingsIcon size={22} strokeWidth={2} />
-      </button>
+      <button className="nav-icon" aria-label="Settings" onClick={onOpenSettings} type="button">
+      <SettingsIcon size={22} strokeWidth={2} />
+    </button>
 
       {/* PROFILE (stays) */}
       <button className="nav-icon" aria-label="Profile" type="button">
@@ -70,21 +94,53 @@ export default function ProfileSidebar({
           <circle cx="12" cy="7" r="4" />
         </svg>
       </button>
+      </div>
+
+       <div className="nav-footer">
+           <button type="button" className={`nav-icon ${menuOpen ? "active" : ""}`} onClick={() => setMenuOpen((v) => !v)}>
+              <Menu size={24} strokeWidth={2} />
+            </button>
+
+            {menuOpen && (
+              <div className="menu-popover" role="menu">
+                <button className="menu-btn" onClick={toggleTheme} type="button">
+                  {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+                  <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+                </button>
+                <button className="menu-btn danger" onClick={() => { setMenuOpen(false); logout(); }} type="button" disabled={!isAuthenticated}>
+                  <LogOut size={18} />
+                  <span>Logout</span>
+              </button>
+            </div> 
+          )}
+        </div>
 
      <style jsx>{`
       .sidebar-nav {
-        position: sticky;           /* stays visible while scrolling (optional) */
-        top: 90px;                  /* adjust if Header height differs */
+        position: sticky;
+        top: 90px;
+        height: calc(100vh - 90px); /* ← gives it height so margin-top: auto works */
         display: flex;
         flex-direction: column;
-        gap: 24px;
+        align-self: start;
         z-index: 3;
-        align-self: start;          /* important inside grid */
+        padding-bottom: 24px;
+      }
+
+      .nav-top {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .nav-footer {
+        margin-top: auto; /* ← now works because parent has height */
+        position: relative;
       }
 
       .nav-icon {
-        width: 34px;
-        height: 34px;
+        width: 40px;
+        height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -92,17 +148,14 @@ export default function ProfileSidebar({
         border: none;
         color: var(--muted);
         cursor: pointer;
-        border-radius: 8px;
+        border-radius: 10px;
         transition: color 0.2s, background 0.2s;
       }
 
-      .nav-icon:hover {
+      .nav-icon:hover,
+      .nav-icon.active {
         color: var(--brand);
         background: rgba(43, 135, 97, 0.12);
-      }
-
-      html.dark .nav-icon:hover {
-        background: rgba(43, 135, 97, 0.18);
       }
 
       .nav-icon:disabled {
@@ -111,14 +164,67 @@ export default function ProfileSidebar({
         background: none;
       }
 
+      .menu-popover {
+        position: absolute;
+        bottom: 48px; /* just above the menu button */
+        left: 0;
+        width: 180px;
+        background: var(--surface);
+        border-radius: 14px;
+        padding: 8px;
+        box-shadow: 0 12px 30px var(--shadow);
+        border: 1px solid var(--border);
+        z-index: 10000;
+      }
+
+      .menu-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        border-radius: 10px;
+        font-family: "Inter", sans-serif;
+        font-size: 13px;
+        color: var(--text);
+        transition: background 0.2s;
+      }
+
+      .menu-btn:hover {
+        background: var(--hover);
+      }
+
+      .menu-btn.danger {
+        color: #ef4444;
+      }
+
+      .menu-btn.danger:hover {
+        background: rgba(239, 68, 68, 0.08);
+      }
+
       @media (max-width: 1024px) {
         .sidebar-nav {
-          position: relative;       /* becomes normal */
+          position: relative;
           top: 0;
+          height: auto; /* ← reset on mobile */
           flex-direction: row;
-          justify-content: center;
-          gap: 16px;
-          margin: 10px 0 0;
+          align-items: center;
+          justify-content: space-between;
+          padding: 8px 16px;
+        }
+
+        .nav-top {
+          flex-direction: row;
+          gap: 8px;
+        }
+
+        .menu-popover {
+          bottom: 48px;
+          left: auto;
+          right: 0; /* ← anchors to right on mobile so it doesn't go offscreen */
         }
       }
 
