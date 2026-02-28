@@ -33,14 +33,14 @@ export default function OnboardingPage() {
         title: "Connect",
         subtitle: "follow friends\nand creators",
         cta: "Continue",
-        bgImage: "/plant.png",
+        bgImage: "/planti.jpg",
         logoText: "RB",
       },
       {
         title: "Share",
         subtitle: "post photos\nand updates",
         cta: "Continue",
-        bgImage: "/plant.png",
+        bgImage: "/planto.jpeg",
         logoText: "RB",
       },
     ],
@@ -114,7 +114,16 @@ export default function OnboardingPage() {
         {/* Right: logo + image */}
         <section className="right">
           <div className="logoBox">
-            <div className="logoMark">{slide.logoText ?? "RB"}</div>
+            <div>
+                <Image
+                  src="/rebes.jpeg"
+                  alt="App logo"
+                  width={100}
+                  height={100}
+                  className="app-logo"
+                  priority
+                />
+            </div>
             <div className="logoSub">RSBCRS</div>
           </div>
 
@@ -318,8 +327,8 @@ export default function OnboardingPage() {
 
     .logoBox {
         position: absolute;
-        top: 70px;
-        right: 70px;
+        top: 10px;
+        right: 40px;
         z-index: 3;
         text-align: center;
         padding: 18px 22px;
