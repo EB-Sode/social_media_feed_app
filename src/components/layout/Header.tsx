@@ -29,10 +29,10 @@ export default function Header({
       <div className="header-content">
         <div className="header-left">
             <Image
-              src="/RB.png"
+              src="/RB.jpeg"
               alt="App logo"
               width={60}
-              height={60}
+              height={50}
               className="app-logo"
               priority
             />
@@ -99,7 +99,10 @@ export default function Header({
     align-items: center;
   }
 
+
   .app-logo {
+    width: 100px;
+    height: 50px;
     border-radius: 9999px;
     object-fit: cover;
     display: block;

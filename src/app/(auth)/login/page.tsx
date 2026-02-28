@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { warmupBackend } from "@/lib/warmupBacked";
+import Image from "next/image";
 
 export default function LoginPage() {
   const { login, loading, error, clearError } = useAuth();
@@ -49,6 +50,18 @@ export default function LoginPage() {
   return (
     <div className="auth-container">
       <div className="auth-card">
+        <div className="logoBox">
+          <div>
+              <Image
+                src="/rebes3.jpeg"
+                alt="App logo"
+                width={100}
+                height={100}
+                className="app-logo"
+                priority
+              />
+          </div>
+        </div>
         <h1 className="auth-title">Login</h1>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -299,6 +312,17 @@ export default function LoginPage() {
         .forgot-link:hover {
           text-decoration: underline;
         }
+
+        .logoBox {
+          position: relative;
+          z-index: 3;
+          text-align: center;
+          padding: 18px 22px;
+          border-radius: 18px;
+          backdrop-filter: blur(6px);
+          border: 1px solid var(--border);
+        }
+
 
         .submit-btn {
           width: 100%;
