@@ -10,6 +10,7 @@ import { imgSrc } from "@/lib/image";
 import { useAuth } from "@/context/AuthContext";
 import { DELETE_POST_MUTATION } from "@/lib/queries";
 import { getAuthenticatedClient } from "@/lib/graphql";
+import Image from "next/image";
 
 export default function PostPage() {
   const params = useParams();
@@ -167,12 +168,12 @@ useEffect(() => {
           <div className="author-section">
             <Link href={`/profile/${post.author.id}`} className="avatar">
               {post.author.profileImage ? (
-                <img
+                <Image
                   src={imgSrc(post.author.profileImage)}
                   alt={post.author.username}
-                  className="avatar-img"
                   width={40}
                   height={40}
+                  className="avatar-img"
                 />
               ) : (
                 <span className="avatar-fallback">
@@ -376,24 +377,23 @@ useEffect(() => {
         align-items: center;
         margin-bottom: 16px;
       }
+
       .avatar,
       .comment-avatar {
-        width: 40px;
-        height: 40px;
-        flex: 0 0 40px;
-        border-radius: 9999px;
+        border-radius: 50%;     /* better than 9999px */
         overflow: hidden;
-        display: block;
+        display: flex;          /* change from block */
+        align-items: center;
+        justify-content: center;
         text-decoration: none;
         background: var(--surface-2);
-        border: 3px solid var(--border);
+        border: 2px solid var(--border);
       }
 
-      .avatar img,
+      .avatar-img,
       .comment-avatar img {
         width: 100%;
         height: 100%;
-        border-radius: 9999px;
         object-fit: cover;
         display: block;
       }

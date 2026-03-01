@@ -377,6 +377,198 @@ function EmptyLine({ text }: { text: string }) {
           color: var(--muted);
           text-align: center;
         }
+
+        .search-page {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 44px 16px;
+        }
+
+        .search-container {
+          max-width: 560px;
+        }
+
+        .search-card {
+          padding: 28px;
+        }
+
+        .search-header {
+          text-align: center;
+          margin-bottom: 18px;
+        }
+
+        .search-title {
+          font-size: 34px;
+          font-weight: 700;
+          letter-spacing: -0.3px;
+        }
+
+        .search-hint {
+          margin-top: 10px;
+          color: var(--muted);
+          font-size: 15px;
+          line-height: 1.65;
+        }
+
+        /* form layout */
+        .search-form {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .search-field {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .search-label {
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--text);
+        }
+
+        /* segmented control */
+        .segmented {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          background: var(--bg);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          padding: 6px;
+          gap: 6px;
+          box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .segmented-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 10px 10px;
+          border-radius: 12px;
+          font-size: 13px;
+          font-weight: 800;
+          color: var(--text);
+          transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .segmented-btn:hover {
+          background: var(--hover);
+        }
+
+        .segmented-btn.is-active {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .segmented-icon {
+          color: var(--brand);
+        }
+
+        /* input */
+        .search-input {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 12px 12px;
+          border-radius: 14px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .search-input:focus-within {
+          border-color: var(--brand);
+          box-shadow: 0 0 0 3px var(--focus-offset), 0 2px 10px var(--shadow);
+        }
+
+        .search-input-icon {
+          color: var(--muted);
+        }
+
+        .search-textbox {
+          width: 100%;
+          border: none;
+          outline: none;
+          background: transparent;
+          font-size: 15px;
+          color: var(--text);
+        }
+
+        .search-textbox::placeholder {
+          color: var(--muted);
+        }
+
+        .search-clear {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          border-radius: 12px;
+          color: var(--muted);
+        }
+
+        /* results */
+        .search-results {
+          margin-top: 6px;
+          border-radius: 16px;
+          border: 1px solid var(--border);
+          background: var(--bg);
+          overflow: hidden;
+        }
+
+        .search-results-head {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          padding: 12px 14px;
+          background: var(--surface);
+          border-bottom: 1px solid var(--border);
+        }
+
+        .search-results-title {
+          font-family: "Poppins", sans-serif;
+          font-weight: 700;
+          font-size: 14px;
+        }
+
+        .search-results-meta {
+          font-size: 12px;
+          color: var(--muted);
+          font-weight: 700;
+          text-transform: capitalize;
+        }
+
+        .search-results-body {
+          padding: 16px 14px;
+        }
+
+        .search-results-text {
+          font-size: 13px;
+          color: var(--muted);
+          text-align: center;
+        }
+
+        /* responsive */
+        @media (max-width: 480px) {
+          .search-card {
+            padding: 20px;
+          }
+
+          .search-title {
+            font-size: 28px;
+          }
+
+          .segmented {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
       `}</style>
     </div>
   );
