@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
         hostname: "social-media-feed-be.onrender.com",
         pathname: "/media/**",
       },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/dnqlvsbzx/**",
+      },
     ],
   },
 };
