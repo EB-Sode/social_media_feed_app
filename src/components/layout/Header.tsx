@@ -2,7 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
-import { Home, Plus, Send } from "lucide-react";
+import { Home, Plus,} from "lucide-react";
+// import { Send } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 
@@ -15,7 +16,7 @@ type HeaderProps = {
 
 export default function Header({
   onCreatePost,
-  onOpenMessages,
+  // onOpenMessages,
   // profileHref = "/profile",
 }: HeaderProps) {
   const pathname = usePathname();
@@ -40,7 +41,7 @@ export default function Header({
 
         <div className="header-actions">
         
-          {/* Messages */}
+          {/* Messages
           <button
             className="header-btn"
             aria-label="Messages"
@@ -50,7 +51,7 @@ export default function Header({
             title={!onOpenMessages ? "Coming soon" : "Messages"}
           >
             <Send size={24} />
-          </button>
+          </button> */}
 
           {/* Create Post (Plus) */}
           <button
