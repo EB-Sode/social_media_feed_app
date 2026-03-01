@@ -99,7 +99,7 @@ export default function OnboardingPage() {
             ))}
           </div>
 
-          <div className="google-wrap">
+          {/* <div className="google-wrap">
             <button
               type="button"
               className="google"
@@ -108,7 +108,7 @@ export default function OnboardingPage() {
               <span className="g">G</span>
               Login with Google
             </button>
-          </div>
+          </div> */}
         </section>
 
         {/* Right: logo + image */}
@@ -124,7 +124,7 @@ export default function OnboardingPage() {
                   priority
                 />
             </div>
-            <div className="logoSub">RSBCRS</div>
+            <div className="logoSub">REBES</div>
           </div>
 
           <Image
@@ -318,6 +318,7 @@ export default function OnboardingPage() {
     .bg {
         position: absolute;
         inset: 0;
+        margin-top: 20px;
         width: 100%;
         height: 100%;
         object-fit: cover;
@@ -326,16 +327,13 @@ export default function OnboardingPage() {
     }
 
     .logoBox {
-        position: absolute;
-        top: 10px;
-        right: 40px;
-        z-index: 3;
+        position: relative;
         text-align: center;
         padding: 18px 22px;
-        border-radius: 18px;
-        background: rgba(255, 255, 255, 0.55);
-        backdrop-filter: blur(6px);
-        border: 1px solid var(--border);
+       
+        
+       
+        
     }
 
     html.dark .logoBox {
