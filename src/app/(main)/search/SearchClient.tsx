@@ -1,27 +1,58 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search, X, Users, Hash, Image as ImageIcon } from "lucide-react";
 
+import { getAuthenticatedClient } from "@/lib/graphql";
+import { SEARCH_QUERY } from "@/lib/queries";
+
+type Filter = "all" | "users" | "hashtags" | "posts";
+
 export default function SearchClient() {
+  const [results, setResults] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const q = searchParams.get("q") ?? "";
+  const filter = (searchParams.get("type") as Filter) ?? "all";
+
   const [value, setValue] = useState(q);
 
-  // Keep local input in sync with URL query when it changes
   React.useEffect(() => {
-    setValue(q);
-  }, [q]);
+    const run = async () => {
+      if (!q.trim()) {
+        setResults(null);
+        setFetchError("");
+        return;
+      }
 
-  const pageWrap =
-    "min-h-screen flex items-center justify-center bg-[#808080] p-5";
-  const card =
-    "w-full max-w-[520px] bg-[#b1f5bf] rounded-2xl px-10 py-12 shadow-[0_10px_40px_rgba(0,0,0,0.15)] max-[480px]:px-6 max-[480px]:py-8";
-  const title =
-    'font-["Poppins"] text-[32px] font-bold text-[#1f2937] text-center mb-4 max-[480px]:text-[28px]';
+      try {
+        setLoading(true);
+        setFetchError("");
+
+        const client = getAuthenticatedClient();
+        const data = await client.request(SEARCH_QUERY, {
+          q,
+          type: filter === "all" ? "all" : filter,
+          limit: 10,
+        });
+
+        setResults(data.search);
+      } catch (e) {
+        console.error(e);
+        setFetchError("Search failed. Please try again.");
+        setResults(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    run();
+  }, [q, filter]);
 
   const hint = useMemo(() => {
     if (!q) return "Search for users, hashtags, or posts.";
@@ -31,7 +62,8 @@ export default function SearchClient() {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const next = value.trim();
-    router.push(next ? `/search?q=${encodeURIComponent(next)}` : "/search");
+    const base = next ? `/search?q=${encodeURIComponent(next)}` : "/search";
+    router.push(filter !== "all" ? `${base}&type=${filter}` : base);
   };
 
   const clear = () => {
@@ -39,88 +71,313 @@ export default function SearchClient() {
     router.push("/search");
   };
 
-  return (
-    <div className={pageWrap}>
-      <div className={card}>
-        <h1 className={title}>Search</h1>
+  const setType = (t: Filter) => {
+    const base = q ? `/search?q=${encodeURIComponent(q)}` : "/search";
+    router.push(t !== "all" ? `${base}${q ? "&" : "?"}type=${t}` : base);
+  };
 
-        <p className="font-['Inter'] text-[15px] text-[#6b7280] text-center mb-8 leading-relaxed">
-          {hint}
-        </p>
-
-        <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          <div>
-            <label className="font-['Inter'] text-sm font-medium text-[#1f2937] block mb-2">
-              Search query
-            </label>
-
-            <div className="flex items-center gap-2 rounded-xl bg-white/70 border border-black/10 px-3 py-3 focus-within:border-[#2B8761] focus-within:ring-4 focus-within:ring-[rgba(43,135,97,0.1)] transition">
-              <Search size={18} className="text-[#1f2937]/60" />
-
-              <input
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                className="w-full bg-transparent outline-none font-['Inter'] text-[15px] text-[#1f2937] placeholder:text-gray-400"
-                placeholder="Type to search… (e.g. @john, #travel)"
-                autoComplete="off"
-              />
-
-              {value && (
-                <button
-                  type="button"
-                  onClick={clear}
-                  className="p-1 rounded-md text-[#1f2937]/60 hover:text-[#1f2937] hover:bg-black/5 transition"
-                  aria-label="Clear search"
-                >
-                  <X size={18} />
-                </button>
-              )}
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full rounded-xl bg-[#2B8761] text-white py-3 font-semibold font-['Poppins'] hover:bg-[#1F6949] transition disabled:opacity-60 disabled:cursor-not-allowed shadow-none hover:shadow-[0_6px_20px_rgba(43,135,97,0.3)] hover:-translate-y-[2px] transform"
-            disabled={!value.trim()}
-          >
-            Search
-          </button>
-
-          {/* “Result type” quick filters (UI only — wire later) */}
-          <div className="grid grid-cols-3 gap-3 mt-2">
-            <button
-              type="button"
-              className="flex items-center justify-center gap-2 rounded-xl bg-white/70 border border-black/10 py-2 font-['Inter'] text-sm font-semibold text-[#1f2937] hover:bg-white transition"
-            >
-              <Users size={16} className="text-[#2B8761]" />
-              Users
-            </button>
-
-            <button
-              type="button"
-              className="flex items-center justify-center gap-2 rounded-xl bg-white/70 border border-black/10 py-2 font-['Inter'] text-sm font-semibold text-[#1f2937] hover:bg-white transition"
-            >
-              <Hash size={16} className="text-[#2B8761]" />
-              Hashtags
-            </button>
-
-            <button
-              type="button"
-              className="flex items-center justify-center gap-2 rounded-xl bg-white/70 border border-black/10 py-2 font-['Inter'] text-sm font-semibold text-[#1f2937] hover:bg-white transition"
-            >
-              <ImageIcon size={16} className="text-[#2B8761]" />
-              Posts
-            </button>
-          </div>
-
-          {/* Placeholder results area */}
-          <div className="mt-6 rounded-2xl bg-white/60 border border-black/10 p-4">
-            <p className="font-['Inter'] text-sm text-[#1f2937]/80 text-center">
-              {q ? "Results will appear here." : "Start searching to see results."}
-            </p>
-          </div>
-        </form>
+  function Section({
+    title,
+    count,
+    children,
+  }: {
+    title: string;
+    count: number;
+    children: React.ReactNode;
+  }) {
+    return (
+      <div className="results-section">
+        <div className="results-section-head">
+          <span className="results-section-title">{title}</span>
+          <span className="results-section-count">{count}</span>
+        </div>
+        {children}
       </div>
+    );
+  }
+
+function EmptyLine({ text }: { text: string }) {
+  return <p className="empty-line">{text}</p>;
+}
+
+  return (
+    <div className="search-page fade-in">
+      <div className="container search-container">
+        <div className="card search-card slide-up">
+          <div className="search-header">
+            <h1 className="search-title">Search</h1>
+            <p className="search-hint">{hint}</p>
+          </div>
+
+          <form onSubmit={onSubmit} className="search-form">
+            {/* Segmented control */}
+            <div className="segmented" role="tablist" aria-label="Search filters">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={filter === "all"}
+                className={`segmented-btn ${filter === "all" ? "is-active" : ""}`}
+                onClick={() => setType("all")}
+              >
+                All
+              </button>
+
+              <button
+                type="button"
+                role="tab"
+                aria-selected={filter === "users"}
+                className={`segmented-btn ${filter === "users" ? "is-active" : ""}`}
+                onClick={() => setType("users")}
+              >
+                <Users size={16} className="segmented-icon" />
+                Users
+              </button>
+
+              <button
+                type="button"
+                role="tab"
+                aria-selected={filter === "hashtags"}
+                className={`segmented-btn ${filter === "hashtags" ? "is-active" : ""}`}
+                onClick={() => setType("hashtags")}
+              >
+                <Hash size={16} className="segmented-icon" />
+                Hashtags
+              </button>
+
+              <button
+                type="button"
+                role="tab"
+                aria-selected={filter === "posts"}
+                className={`segmented-btn ${filter === "posts" ? "is-active" : ""}`}
+                onClick={() => setType("posts")}
+              >
+                <ImageIcon size={16} className="segmented-icon" />
+                Posts
+              </button>
+            </div>
+
+            {/* Input */}
+            <div className="search-field">
+              <label className="search-label">Search query</label>
+
+              <div className="search-input">
+                <Search size={18} className="search-input-icon" />
+
+                <input
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  className="search-textbox"
+                  placeholder="Try “@john”, “#travel”, or “sunset photo”…"
+                  autoComplete="off"
+                />
+
+                {value && (
+                  <button
+                    type="button"
+                    onClick={clear}
+                    className="search-clear hover-surface"
+                    aria-label="Clear search"
+                  >
+                    <X size={18} />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="btn-primary w-full disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={!value.trim()}
+            >
+              Search
+            </button>
+
+            {/* Results area */}
+          <div className="search-results-body">
+            {fetchError && <p className="search-results-text">{fetchError}</p>}
+
+            {loading && <p className="search-results-text">Searching…</p>}
+
+            {!loading && !fetchError && q && results && (
+              <div className="results-stack">
+                {/* USERS */}
+                {(filter === "all" || filter === "users") && (
+                  <Section
+                  title="Users found: " 
+                  count={results?.users?.length ?? 0}>
+                    {results?.users?.length ? (
+                      <div className="results-list">
+                        {results.users.map((u: any) => (
+                          <button
+                            key={u.id}
+                            type="button"
+                            className="result-row hover-surface"
+                            onClick={() => router.push(`/profile/${u.id}`)}
+                          >
+                            <span className="result-primary">@{u.username}</span>
+                            <span className="result-secondary">View profile</span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <EmptyLine text="No users found." />
+                    )}
+                  </Section>
+                )}
+
+                {/* HASHTAGS */}
+                {(filter === "all" || filter === "hashtags") && (
+                  <Section title="Hashtags found: " count={results?.hashtags?.length ?? 0}>
+                    {results?.hashtags?.length ? (
+                      <div className="results-chips">
+                        {results.hashtags.map((t: any) => (
+                          <button
+                            key={t.id}
+                            type="button"
+                            className="tag-chip hover-surface"
+                            onClick={() => router.push(`/search?q=${encodeURIComponent("#" + t.name)}&type=posts`)}
+                          >
+                            #{t.name}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <EmptyLine text="No hashtags found." />
+                    )}
+                  </Section>
+                )}
+
+                {/* POSTS */}
+                {(filter === "all" || filter === "posts") && (
+                  <Section title="Posts found: " count={results?.posts?.length ?? 0}>
+                    {results?.posts?.length ? (
+                      <div className="results-list">
+                        {results.posts.map((p: any) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            className="result-row hover-surface"
+                            onClick={() => router.push(`/post/${p.id}`)}
+                          >
+                            <span className="result-primary">
+                              {String(p.content || "").slice(0, 70)}
+                              {p.content && String(p.content).length > 70 ? "…" : ""}
+                            </span>
+                            <span className="result-secondary">Open post</span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <EmptyLine text="No posts found." />
+                    )}
+                  </Section>
+                )}
+
+                {/* TOTAL EMPTY */}
+                {!results?.users?.length && !results?.hashtags?.length && !results?.posts?.length && (
+                  <p className="search-results-text">No results found.</p>
+                )}
+              </div>
+            )}
+
+            {!loading && !fetchError && !q && (
+              <p className="search-results-text">Start searching to see results.</p>
+            )}
+          </div>
+          </form>
+        </div>
+      </div>
+      <style jsx>{`
+        .results-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .results-section {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          overflow: hidden;
+          box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .results-section-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 12px;
+          border-bottom: 1px solid var(--border);
+          background: var(--bg);
+        }
+
+        .results-section-title {
+          font-family: "Poppins", sans-serif;
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--text);
+        }
+
+        .results-section-count {
+          font-size: 12px;
+          font-weight: 800;
+          color: var(--muted);
+          padding: 4px 8px;
+          border-radius: 999px;
+          border: 1px solid var(--border);
+          background: var(--surface);
+        }
+
+        .results-list {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .result-row {
+          width: 100%;
+          text-align: left;
+          padding: 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .result-primary {
+          font-size: 14px;
+          font-weight: 700;
+          color: var(--text);
+        }
+
+        .result-secondary {
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--muted);
+        }
+
+        .results-chips {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          padding: 12px;
+        }
+
+        .tag-chip {
+          padding: 8px 10px;
+          border-radius: 999px;
+          border: 1px solid var(--border);
+          background: var(--bg);
+          color: var(--text);
+          font-weight: 800;
+          font-size: 12px;
+        }
+
+        .empty-line {
+          padding: 12px;
+          font-size: 13px;
+          color: var(--muted);
+          text-align: center;
+        }
+      `}</style>
     </div>
   );
 }

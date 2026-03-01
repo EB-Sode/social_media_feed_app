@@ -546,3 +546,30 @@ export const UPDATE_USER_IMAGES = `
     }
   }
 `;
+
+export const SEARCH_QUERY = `
+  query Search($q: String!, $type: String, $limit: Int) {
+    search(q: $q, type: $type, limit: $limit) {
+      users {
+        id
+        username
+        profileImage
+      }
+      hashtags {
+        id
+        name
+      }
+      posts {
+        id
+        content
+        imageUrl
+        createdAt
+        author {
+          id
+          username
+          profileImage
+        }
+      }
+    }
+  }
+`;
