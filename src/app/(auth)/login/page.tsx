@@ -70,7 +70,7 @@ export default function LoginPage() {
           {/* Username/Email */}
           <div className="form-group">
             <label htmlFor="username" className="form-label">
-              username/email
+              Username/Email
             </label>
             <input
               id="username"
