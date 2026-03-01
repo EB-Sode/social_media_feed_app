@@ -89,10 +89,8 @@ function getFriendlyAuthError(err: unknown): string {
     return "Network error. Please try again.";
   }
 
-  // Fallback (never show raw JSON)
   return "Login failed. Please try again.";
 }
-
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();

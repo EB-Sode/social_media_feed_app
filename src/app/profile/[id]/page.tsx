@@ -49,8 +49,7 @@ export default function ProfilePage() {
     try {
       await createPostWithImage({ content: "", image: file });
       setActiveTab("posts");
-      // optional: refetch() if your create mutation doesn't return full post
-      // await refetch();
+
     } catch (e) {
       console.error(e);
       alert("Upload failed");
