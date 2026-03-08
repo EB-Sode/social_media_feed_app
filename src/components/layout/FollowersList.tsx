@@ -18,7 +18,7 @@ export default function FollowersList({
 
   refreshKey = 0, // ✅
 }: FollowersListProps) {
-  const { users, loading, error } = useFollowersList(userId, mode, refreshKey); // ✅
+  const { users, loading } = useFollowersList(userId, mode, refreshKey); // ✅
 
   return (
     <div className="followers-container">
